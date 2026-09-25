@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Caravan Flyer Maker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,600&family=DM+Sans:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">World Mental Health Day · Miracle of Mind</div>
+    <h1>Caravan Flyer Maker</h1>
+    <p class="lede">Fill in your city's caravan details. The flyer updates as you type. Download the image, copy the WhatsApp message, and send both together.</p>
+  </header>
+
+  <div class="grid">
+    <form class="panel" id="form" autocomplete="off">
+      <div class="step">
+        <h2><span>1</span>When</h2>
+        <div class="row">
+          <label for="f-date">Date<input id="f-date"></label>
+          <label for="f-time">Time<input id="f-time"></label>
+        </div>
+        <label for="f-note">Note for the message (optional)<input id="f-note" placeholder="e.g. right after Satsang"></label>
+        <p class="hint">The note only goes in the WhatsApp message, not on the flyer.</p>
+      </div>
+
+      <div class="step">
+        <h2><span>2</span>Where</h2>
+        <label for="f-area">Area name<input id="f-area" placeholder="e.g. the Bay Area"></label>
+        <div id="locs" class="step"></div>
+        <button type="button" class="link-btn" id="add-loc">+ Add a location</button>
+        <p class="hint">Each caravan loops back to where it starts. Up to <span id="max-locs">4</span> locations.</p>
+      </div>
+
+      <div class="step">
+        <h2><span>3</span>RSVP</h2>
+        <label for="f-rsvp">Google Form link<input id="f-rsvp" type="url" placeholder="https://forms.gle/…" inputmode="url"></label>
+        <p class="hint">A QR code for this link is added to the flyer automatically.</p>
+        <p class="warn" id="rsvp-warn" hidden></p>
+      </div>
+      <button type="button" class="link-btn" id="reset">Reset to the example</button>
+    </form>
+
+    <section class="preview" aria-label="Flyer preview">
+      <div class="frame"><img id="out" alt="Flyer preview"></div>
+      <div class="actions">
+        <button type="button" class="btn primary" id="dl">Download flyer (PNG)</button>
+        <span class="status" id="dl-status" role="status"></span>
+      </div>
+      <div class="frame msg">
+        <h2>WhatsApp message</h2>
+        <textarea id="msg" aria-label="WhatsApp message" readonly></textarea>
+        <div class="actions">
+          <button type="button" class="btn secondary" id="copy">Copy message</button>
+          <span class="status" id="copy-status" role="status"></span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- One location row; cloned by js/app.js for each location. -->
+<template id="loc-template">
+  <div class="loc">
+    <label>City<input></label>
+    <label>Start &amp; finish spot<input></label>
+    <button type="button" class="icon-btn"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </div>
+</template>
+
+<canvas id="cv"></canvas>
+
+<script src="vendor/qrcode.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+:root{
+  --bg:#F3EFE6; --panel:#FFFFFF; --ink:#1E2A44; --muted:#5B6479; --line:#E2DACB;
+  --forest:#26402E; --forest-ink:#FFFFFF; --accent:#B8561B; --accent-ink:#FFFFFF;
+  --field:#FBFAF6; --focus:#2F6B5E; --warn:#8A4B0F; --warn-bg:#FBEBD9;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#15191F; --panel:#1E242C; --ink:#EEF0F4; --muted:#A3ABBA; --line:#323A46;
+    --forest:#2E4D37; --forest-ink:#FFFFFF; --accent:#E07A3C; --accent-ink:#1A1206;
+    --field:#171C23; --focus:#7FC3AE; --warn:#F2B77E; --warn-bg:#3A2A1A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#15191F; --panel:#1E242C; --ink:#EEF0F4; --muted:#A3ABBA; --line:#323A46;
+  --forest:#2E4D37; --forest-ink:#FFFFFF; --accent:#E07A3C; --accent-ink:#1A1206;
+  --field:#171C23; --focus:#7FC3AE; --warn:#F2B77E; --warn-bg:#3A2A1A;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1180px;margin:0 auto;padding:28px 20px 48px}
+header.top{display:flex;flex-direction:column;gap:6px;margin-bottom:22px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+h1{margin:0;font-family:Fraunces,Georgia,serif;font-weight:700;font-size:clamp(30px,5vw,44px);line-height:1.05;letter-spacing:-.01em;text-wrap:balance}
+.lede{margin:0;color:var(--muted);max-width:62ch}
+.grid{display:grid;grid-template-columns:minmax(0,400px) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:18px}
+.step{display:flex;flex-direction:column;gap:10px}
+.step h2{margin:0;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;gap:8px;align-items:center}
+.step h2 span{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--forest);color:var(--forest-ink);font-size:12px;letter-spacing:0}
+.row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500;color:var(--muted)}
+input{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-width:0;width:100%}
+input:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.loc{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr) auto;gap:8px;align-items:end}
+.loc label{min-width:0}
+.icon-btn{border:1px solid var(--line);background:var(--field);color:var(--muted);border-radius:10px;width:40px;height:40px;cursor:pointer;display:grid;place-items:center}
+.icon-btn:hover{color:var(--ink)}
+.link-btn{align-self:flex-start;border:1px dashed var(--line);background:transparent;color:var(--ink);border-radius:10px;padding:8px 12px;font:inherit;font-weight:500;cursor:pointer}
+.link-btn[disabled]{opacity:.45;cursor:not-allowed}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.warn{font-size:13px;color:var(--warn);background:var(--warn-bg);border-radius:10px;padding:8px 12px;margin:0}
+.preview{display:flex;flex-direction:column;gap:14px}
+.frame{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px}
+.frame img{display:block;width:100%;height:auto;border-radius:8px;background:#F6F1E7}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{font:inherit;font-weight:700;border-radius:999px;padding:11px 20px;cursor:pointer;border:1px solid transparent}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.secondary{background:transparent;border-color:var(--line);color:var(--ink)}
+.status{font-size:13px;color:var(--muted)}
+textarea{font:14px/1.5 "DM Sans",system-ui,sans-serif;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-height:210px;resize:vertical}
+.msg{display:flex;flex-direction:column;gap:10px}
+.msg h2{margin:0;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+canvas{display:none}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
