@@ -350,17 +350,30 @@ function drawRouteInfo(ctx, state, y) {
   ctx.textBaseline = "alphabetic";
 }
 
-/* Safety line across the bottom. Returns its height. */
+/* Safety line across the bottom, with a shield icon. Returns its height. */
+const SAFETY_INDENT = 28; // room for the icon
+const SHIELD = P("M9,0 L18,3.5 V9 C18,14.5 14,18.5 9,20 C4,18.5 0,14.5 0,9 V3.5 Z");
+
 function measureSafety(ctx) {
   ctx.font = "400 17px " + SANS;
-  return 14 + wrapText(ctx, T.safety, L.width - L.margin * 2).length * 24;
+  return 14 + wrapText(ctx, T.safety, L.width - L.margin * 2 - SAFETY_INDENT).length * 24;
+}
+
+function drawShield(ctx, x, y) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = C.forest; ctx.fill(SHIELD);
+  ctx.strokeStyle = C.white; ctx.lineWidth = 2; ctx.lineCap = "round"; ctx.lineJoin = "round";
+  ctx.beginPath(); ctx.moveTo(5, 10); ctx.lineTo(8, 13); ctx.lineTo(13, 7); ctx.stroke();
+  ctx.restore();
 }
 
 function drawSafety(ctx, y) {
   const M = L.margin;
   ctx.fillStyle = C.cardBorder; ctx.fillRect(M, y, L.width - M * 2, 2);
+  drawShield(ctx, M, y + 12);
   ctx.textBaseline = "top"; ctx.font = "400 17px " + SANS; ctx.fillStyle = C.body;
-  wrapText(ctx, T.safety, L.width - M * 2).forEach((ln, i) => ctx.fillText(ln, M, y + 12 + i * 24));
+  wrapText(ctx, T.safety, L.width - M * 2 - SAFETY_INDENT)
+    .forEach((ln, i) => ctx.fillText(ln, M + SAFETY_INDENT, y + 12 + i * 24));
   ctx.textBaseline = "alphabetic";
 }
 
