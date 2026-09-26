@@ -18,7 +18,7 @@ const L = {
   bandHeight: 286,
   sceneHeight: 236,
   closingHeight: 104,
-  bottomPad: 30,
+  bottomPad: 22,
   cardGap: 16
 };
 
@@ -344,23 +344,23 @@ function drawRouteCards(ctx, layout, y) {
 function drawRouteInfo(ctx, state, y) {
   const text = ROUTE_INFO[state.routeInfo].text;
   ctx.textBaseline = "middle";
-  drawFlag(ctx, L.margin + 6, y + 17);
+  drawFlag(ctx, L.margin + 6, y + 14);
   fitFont(ctx, text, "700", 21, SANS, L.width - L.margin * 2 - 30, 15);
-  ctx.fillStyle = C.navy; ctx.fillText(text, L.margin + 30, y + 17);
+  ctx.fillStyle = C.navy; ctx.fillText(text, L.margin + 30, y + 14);
   ctx.textBaseline = "alphabetic";
 }
 
 /* Safety line across the bottom. Returns its height. */
 function measureSafety(ctx) {
   ctx.font = "400 17px " + SANS;
-  return 18 + wrapText(ctx, T.safety, L.width - L.margin * 2).length * 24;
+  return 14 + wrapText(ctx, T.safety, L.width - L.margin * 2).length * 24;
 }
 
 function drawSafety(ctx, y) {
   const M = L.margin;
   ctx.fillStyle = C.cardBorder; ctx.fillRect(M, y, L.width - M * 2, 2);
   ctx.textBaseline = "top"; ctx.font = "400 17px " + SANS; ctx.fillStyle = C.body;
-  wrapText(ctx, T.safety, L.width - M * 2).forEach((ln, i) => ctx.fillText(ln, M, y + 16 + i * 24));
+  wrapText(ctx, T.safety, L.width - M * 2).forEach((ln, i) => ctx.fillText(ln, M, y + 12 + i * 24));
   ctx.textBaseline = "alphabetic";
 }
 
@@ -405,8 +405,8 @@ export async function drawFlyer(canvas, state) {
   const yScene = yIntro + measureIntro(ctx) + 16;
   const yRoutes = yScene + L.sceneHeight + 14;
   const yRouteInfo = yRoutes + routes.total + 12;
-  const yClosing = yRouteInfo + 34 + 18;
-  const ySafety = yClosing + L.closingHeight + 22;
+  const yClosing = yRouteInfo + 28 + 4;
+  const ySafety = yClosing + L.closingHeight + 14;
   const height = ySafety + measureSafety(ctx) + L.bottomPad;
 
   canvas.width = L.width; canvas.height = height;
