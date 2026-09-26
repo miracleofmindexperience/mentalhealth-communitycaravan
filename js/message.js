@@ -1,4 +1,4 @@
-import { MESSAGE_TEXT as T } from "./config.js";
+import { MESSAGE_TEXT as T, DEFAULT_MATERIALS } from "./config.js";
 import { activeLocs, rsvpUrl, locWhen, hasMultipleWhens, routeInfoText } from "./state.js";
 
 const INDENT = "   ";
@@ -36,11 +36,14 @@ export function buildMessage(state) {
   routes.push(T.locationsHeader(locs.length));
   locs.forEach(l => routes.push(...routeLines(state, l, multi, note)));
 
-  const notes = [];
-  const info = routeInfoText(state);
-  if (info) notes.push(T.routeInfoIcon + info);
-  notes.push(T.safetyLabel + T.safetyPoints.join(T.separator));
-  if (state.materials.trim()) notes.push(T.materialsIcon + state.materials.trim());
+  const notes = [T.safetyLabel + T.safetyPoints.join(T.separator)];
+  const info = routeInfoText(state), materials = state.materials.trim();
+  if (state.routeInfo === "meetup" && materials === DEFAULT_MATERIALS) {
+    notes.push(T.meetupAndMaterials); // both happen at the meetup point: one line
+  } else {
+    if (info) notes.push(T.routeInfoIcon + info);
+    if (materials) notes.push(T.materialsIcon + materials);
+  }
 
   const signOff = [T.closing, T.rsvpLabel + (rsvpUrl(state) || T.rsvpMissing)];
   if (state.contact.trim()) signOff.push(T.contactLabel + state.contact.trim());

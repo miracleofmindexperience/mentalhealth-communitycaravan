@@ -44,7 +44,7 @@ export const FLYER_TEXT = {
   titleLine2: "Caravan",
   appCaption: "Free 7-min meditation app · Scan",
   tagline: "Let’s drive the conversation.",
-  description: "A silent group drive in our own cars, with mental-wellness signs and Miracle of Mind QR codes. No honking, no speeches. Just quiet, visible support.",
+  description: "Join us for a silent group drive in our own cars to raise awareness about mental well-being and share Miracle of Mind, a free 7-minute meditation app. No honking, no speeches.",
   startHeader: "START",
   finishHeader: "FINISH",
   loopFinish: "Back to start",
@@ -70,7 +70,7 @@ export const FLYER_TEXT = {
 /* The WhatsApp message. Lines with *stars* render bold in WhatsApp. */
 export const MESSAGE_TEXT = {
   title: "🚗 *Community Caravan for World Mental Health Day*",
-  intro: "A silent group drive in our own cars, with mental-wellness signs and QR codes for *Miracle of Mind*, a free 7-minute meditation app. No honking, no speeches. Just quiet, visible support for mental well-being.",
+  intro: "Join us this World Mental Health Day for a silent group drive in our own cars, raising awareness about mental well-being and sharing *Miracle of Mind*, a free 7-minute meditation app. No honking, no speeches.",
   locationsHeader: n => n > 1 ? "📍 *Routes:*" : "📍 *Route:*",
   loopSuffix: " (loop, back to start)",
   finishLater: "finish shared with route instructions",
@@ -78,12 +78,14 @@ export const MESSAGE_TEXT = {
   /* Safety points are joined on one line with the separator. */
   safetyLabel: "⚠️ *Safety guidelines:* ",
   safetyPoints: [
-    "Put safe driving first, always",
-    "Follow all rules of the road",
-    "Drive at the pace of traffic, no honking or sudden stops"
+    "Follow all rules of the road.",
+    "Drive at the pace of traffic, no honking or sudden stops."
   ],
-  separator: " · ",
+  separator: " ",
   materialsIcon: "🚩 ",
+  /* Replaces the route-instructions and materials lines when instructions are
+     shared at the meetup point and the materials note hasn't been changed. */
+  meetupAndMaterials: "🚩 Route instructions and caravan materials such as magnets, stickers or flags will be provided at the meetup point.",
   closing: "🙏 Open to all. Bring family & friends!",
   rsvpLabel: "✅ RSVP: ",
   rsvpMissing: "[GOOGLE FORM LINK]",
