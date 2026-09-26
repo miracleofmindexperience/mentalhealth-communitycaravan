@@ -18,6 +18,8 @@ Then open http://localhost:8000.
 
 Settings → Pages → Deploy from branch → `main` / root. The `.nojekyll` file makes Pages serve the files as they are.
 
+**Before each push, run `scripts/bump-version.sh`.** Browsers keep copies of the page's files for up to 10 minutes. The script raises the `?v=N` tag on every file in `index.html`, so visitors load the new files together instead of mixing new and old ones. If you add a new file under `js/`, add it to the import map in `index.html` too.
+
 ## Where to change things
 
 | I want to change… | Edit |
@@ -65,6 +67,7 @@ js/message.js       builds the WhatsApp message
 js/flyer.js         draws the flyer on a canvas, section by section
 js/lib/canvas.js    generic canvas helpers (rounded rects, text fitting, QR)
 js/app.js           connects the form, preview and buttons
+scripts/bump-version.sh  raises the cache version tag before a release
 vendor/qrcode.js    qrcode-generator 1.4.4 (MIT, Kazuhiko Arase)
 assets/mom-logo.png Miracle of Mind logo
 ```
