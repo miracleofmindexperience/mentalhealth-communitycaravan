@@ -44,7 +44,7 @@ export const FLYER_TEXT = {
   titleLine2: "Caravan",
   appCaption: "Free 7-min meditation app · Scan",
   tagline: "Let’s drive the conversation.",
-  description: "Join us for a silent group drive in our own cars to raise awareness about mental well-being and share Miracle of Mind, a free 7-minute meditation app. No honking, no speeches.",
+  description: "Join us for a silent group drive in our own cars to raise awareness about mental well-being and share Miracle of Mind, a free app. No honking, no speeches. Just quiet, visible support.",
   startHeader: "START",
   finishHeader: "FINISH",
   loopFinish: "Back to start",
