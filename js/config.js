@@ -48,6 +48,7 @@ export const FLYER_TEXT = {
   startHeader: "START",
   finishHeader: "FINISH",
   loopFinish: "Back to start",
+  routeFooter: "START & FINISH · LOOP DRIVE",  // bottom of each loop card
   finishLater: "Shared with route instructions",
   cityPlaceholder: "City",
   spotPlaceholder: "Meeting spot",
@@ -111,9 +112,9 @@ export const PRESETS = {
       rsvp: "",
       routeInfo: "meetup",
       locs: [
-        { city: "Cumming", spot: "Midway Park Community Building", type: "oneway", end: "Fowler Park" },
-        { city: "Atlanta", spot: "Sheraton Atlanta Perimeter North", type: "oneway", end: "Downtown Alpharetta" },
-        { city: "Duluth", spot: "Gas South Convention Center", type: "oneway", end: "W.P. Jones Memorial Park" }
+        { city: "Cumming", spot: "Midway Park Community Building", type: "loop" },
+        { city: "Atlanta", spot: "Sheraton Atlanta Perimeter North", type: "loop" },
+        { city: "Duluth", spot: "W.P. Jones Memorial Park", type: "loop" }
       ]
     }
   }

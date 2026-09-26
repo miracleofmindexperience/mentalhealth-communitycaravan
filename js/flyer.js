@@ -1,7 +1,7 @@
 /*
  * Draws the flyer onto a canvas. The flyer is built top to bottom from
- * sections (header, tagline + description, scene + date strip, route table,
- * route-instructions line, closing row, safety footer);
+ * sections (header, tagline + description, scene + date strip, route table
+ * or loop cards, route-instructions line, closing row, safety footer);
  * each section is its own function, so one can be changed, reordered or
  * removed without touching the others. Text comes from config.js.
  */
@@ -18,7 +18,8 @@ const L = {
   bandHeight: 286,
   sceneHeight: 236,
   closingHeight: 104,
-  bottomPad: 30
+  bottomPad: 30,
+  cardGap: 16
 };
 
 /* ---------- illustration shapes (scene artwork) ---------- */
@@ -284,6 +285,61 @@ function drawRoutes(ctx, layout, y) {
   ctx.textBaseline = "alphabetic";
 }
 
+/*
+ * Loop cards: used instead of the route table when every route is a loop.
+ * 1–3 cards per row, 2×2 for four.
+ */
+function layoutCards(ctx, locs, W) {
+  const n = Math.max(locs.length, 1), cols = n === 4 ? 2 : Math.min(n, 3), gap = L.cardGap;
+  const cw = (W - gap * (cols - 1)) / cols;
+  const rows = [];
+  ctx.font = "700 22px " + SANS;
+  locs.forEach((l, i) => {
+    const r = Math.floor(i / cols);
+    rows[r] = rows[r] || [];
+    rows[r].push({ l, lines: wrapText(ctx, (l.spot || "").trim() || T.spotPlaceholder, cw - 40) });
+  });
+  const heights = rows.map(row => 16 + 40 + 10 + Math.max(...row.map(c => c.lines.length)) * 27 + 8 + 20 + 18);
+  return { cw, gap, rows, heights, total: heights.reduce((a, b) => a + b, 0) + gap * (rows.length - 1) };
+}
+
+function drawLoopIcon(ctx, x, y) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.strokeStyle = C.accent; ctx.lineWidth = 3.5; ctx.lineCap = "round"; ctx.stroke(LOOP_ARC);
+  ctx.fillStyle = C.accent; ctx.fill(LOOP_HEAD);
+  ctx.fillStyle = C.navy; ctx.beginPath(); ctx.arc(20, 6, 4.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = C.white; ctx.beginPath(); ctx.arc(20, 6, 1.8, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+function drawRouteCard(ctx, card, x0, y, w, h) {
+  ctx.fillStyle = C.white; roundRect(ctx, x0, y, w, h, 18); ctx.fill();
+  ctx.strokeStyle = C.cardBorder; ctx.lineWidth = 2; roundRect(ctx, x0 + 1, y + 1, w - 2, h - 2, 17); ctx.stroke();
+  drawLoopIcon(ctx, x0 + 18, y + 16);
+
+  ctx.textBaseline = "middle"; ctx.fillStyle = C.accent;
+  const city = ((card.l.city || "").trim() || T.cityPlaceholder).toUpperCase();
+  const cfs = fitFont(ctx, city, "700", 20, SANS, w - 18 - 50 - 18 - city.length * 2, 13);
+  ctx.font = "700 " + cfs + "px " + SANS;
+  spacedText(ctx, city, x0 + 68, y + 36, 2);
+
+  ctx.textBaseline = "top"; ctx.font = "700 22px " + SANS; ctx.fillStyle = C.navy;
+  card.lines.forEach((ln, i) => ctx.fillText(ln, x0 + 18, y + 66 + i * 27));
+
+  let lf = 15; ctx.font = "700 15px " + SANS;
+  while (spacedWidth(ctx, T.routeFooter, 1) > w - 36 && lf > 11) { lf--; ctx.font = "700 " + lf + "px " + SANS; }
+  ctx.fillStyle = C.muted;
+  spacedText(ctx, T.routeFooter, x0 + 18, y + 66 + card.lines.length * 27 + 8, 1);
+}
+
+function drawRouteCards(ctx, layout, y) {
+  layout.rows.forEach((row, ri) => {
+    const h = layout.heights[ri];
+    row.forEach((card, ci) => drawRouteCard(ctx, card, L.margin + ci * (layout.cw + layout.gap), y, layout.cw, h));
+    y += h + layout.gap;
+  });
+}
+
 /* "Route instructions will be shared…" line under the route table. */
 function drawRouteInfo(ctx, state, y) {
   const text = ROUTE_INFO[state.routeInfo].text;
@@ -340,7 +396,9 @@ export async function drawFlyer(canvas, state) {
   const ctx = canvas.getContext("2d");
   const M = L.margin, CW = L.width - M * 2;
   const locs = activeLocs(state).length ? activeLocs(state) : [{ city: "", spot: "" }];
-  const routes = layoutRoutes(ctx, locs, CW);
+  // All loops: loop cards. Any start → finish route: the route table.
+  const loopsOnly = allLoops(locs);
+  const routes = loopsOnly ? layoutCards(ctx, locs, CW) : layoutRoutes(ctx, locs, CW);
 
   // vertical positions of each section
   const yIntro = L.bandHeight + 16;
@@ -358,7 +416,8 @@ export async function drawFlyer(canvas, state) {
   drawHeader(ctx);
   drawIntro(ctx, yIntro);
   drawScene(ctx, state, yScene);
-  drawRoutes(ctx, routes, yRoutes);
+  if (loopsOnly) drawRouteCards(ctx, routes, yRoutes);
+  else drawRoutes(ctx, routes, yRoutes);
   drawRouteInfo(ctx, state, yRouteInfo);
   drawClosing(ctx, state, yClosing);
   drawSafety(ctx, ySafety);
