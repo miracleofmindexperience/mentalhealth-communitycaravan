@@ -1,4 +1,4 @@
-import { STORAGE_KEY, PRESETS, DEFAULT_PRESET, ROUTE_INFO, DEFAULT_ROUTE_INFO, ROUTE_TYPES } from "./config.js";
+import { STORAGE_KEY, PRESETS, DEFAULT_PRESET, ROUTE_INFO, DEFAULT_ROUTE_INFO, ROUTE_TYPES, FLYER_TEXT } from "./config.js";
 
 /* Which preset the page is using: ?preset=<key> if valid, else the default. */
 export function activePresetKey() {
@@ -20,6 +20,7 @@ function normalize(s) {
     end: l.end || ""
   }));
   if (!ROUTE_INFO[s.routeInfo]) s.routeInfo = DEFAULT_ROUTE_INFO;
+  if (typeof s.strip !== "string") s.strip = null; // null = automatic text
   return s;
 }
 
@@ -45,6 +46,18 @@ export function activeLocs(state) {
 
 export function allLoops(locs) {
   return locs.length > 0 && locs.every(l => l.type === "loop");
+}
+
+/* The line next to the date on the flyer, worked out from the routes and area. */
+export function autoStripText(state) {
+  const locs = activeLocs(state);
+  return FLYER_TEXT.routesSummary(locs.length, (state.area || "").trim(), allLoops(locs));
+}
+
+/* What the flyer shows next to the date: the coordinator's own text if they
+   typed one (empty = nothing), otherwise the automatic text. */
+export function stripText(state) {
+  return state.strip === null ? autoStripText(state) : state.strip.trim();
 }
 
 /* The RSVP link as a full URL, or "" if it doesn't look like a link.

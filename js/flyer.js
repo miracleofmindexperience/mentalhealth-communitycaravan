@@ -6,7 +6,7 @@
  * removed without touching the others. Text comes from config.js.
  */
 import { COLORS as C, FONTS, FLYER_TEXT as T, MOM_URL, LOGO_SRC, ROUTE_INFO } from "./config.js";
-import { activeLocs, allLoops, rsvpValid, rsvpUrl } from "./state.js";
+import { activeLocs, allLoops, rsvpValid, rsvpUrl, stripText } from "./state.js";
 import { roundRect, spacedWidth, spacedText, wrapText, fitFont, drawQR } from "./lib/canvas.js";
 
 const SERIF = FONTS.serif, SANS = FONTS.sans;
@@ -152,20 +152,26 @@ function drawDateStrip(ctx, state, y, h) {
   ctx.textBaseline = "middle";
   ctx.font = "700 36px " + SERIF;
 
+  // date | time | strip text, with a divider between whichever are present
+  const parts = [(state.date || "").trim(), (state.time || "").trim()].filter(Boolean);
+  const sub = stripText(state);
+  let first = true;
   const divider = () => {
+    if (first) { first = false; return; }
     x += 20; ctx.fillStyle = C.divider; ctx.fillRect(x, mid - 20, 2, 40); x += 22;
   };
-  [(state.date || "").trim(), (state.time || "").trim()].filter(Boolean).forEach(part => {
+  parts.forEach(part => {
+    divider();
     ctx.fillStyle = C.cream; ctx.fillText(part, x, mid);
     x += ctx.measureText(part).width;
-    divider();
   });
 
-  const locs = activeLocs(state);
-  const sub = T.routesSummary(locs.length, (state.area || "").trim(), allLoops(locs));
-  const fs = fitFont(ctx, sub, "400", 26, SANS, M + CW - 28 - x, 16);
-  ctx.font = "400 " + fs + "px " + SANS; ctx.fillStyle = C.subtle;
-  ctx.fillText(sub, x, mid);
+  if (sub) {
+    divider();
+    const fs = fitFont(ctx, sub, "400", 26, SANS, M + CW - 28 - x, 16);
+    ctx.font = "400 " + fs + "px " + SANS; ctx.fillStyle = C.subtle;
+    ctx.fillText(sub, x, mid);
+  }
 }
 
 /*

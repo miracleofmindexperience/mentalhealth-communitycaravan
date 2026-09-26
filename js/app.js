@@ -1,6 +1,6 @@
 /* Wires the form, the live flyer preview, the message box and the buttons together. */
 import { MAX_LOCATIONS, PRESETS, FONTS, DOWNLOAD_PREFIX, ROUTE_INFO, ROUTE_TYPES, NEW_LOCATION_TYPE } from "./config.js";
-import { loadState, saveState, presetData, activePresetKey, activeLocs, rsvpValid } from "./state.js";
+import { loadState, saveState, presetData, activePresetKey, activeLocs, rsvpValid, autoStripText } from "./state.js";
 import { buildMessage } from "./message.js";
 import { drawFlyer } from "./flyer.js";
 
@@ -20,7 +20,18 @@ function fillOptions(select, options) {
 function fillForm() {
   Object.entries(FIELDS).forEach(([id, key]) => { $(id).value = state[key] || ""; });
   renderLocs();
+  updateStrip();
 }
+
+/* Strip text: shows the automatic text (kept in sync with the routes) until
+   the coordinator types their own. */
+function updateStrip() {
+  const auto = state.strip === null;
+  if (auto) $("f-strip").value = autoStripText(state);
+  $("strip-auto").hidden = auto;
+}
+$("f-strip").addEventListener("input", e => { state.strip = e.target.value; changed(); });
+$("strip-auto").addEventListener("click", () => { state.strip = null; changed(); });
 
 function renderLocs() {
   const box = $("locs");
@@ -67,6 +78,7 @@ $("form").addEventListener("submit", e => e.preventDefault());
 let drawTimer = null;
 function changed() {
   saveState(state);
+  updateStrip();
   updateMessage();
   updateWarn();
   clearTimeout(drawTimer);
