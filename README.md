@@ -42,7 +42,7 @@ Add an entry to `PRESETS` in `js/config.js`:
 bayarea: {
   label: "Bay Area",
   data: {
-    date: "Sat, Oct 10", time: "10 – 11 AM", note: "", area: "the Bay Area", rsvp: "https://forms.gle/…",
+    date: "Sat, Oct 10", time: "10 to 11 AM", note: "", area: "the Bay Area", rsvp: "https://forms.gle/…",
     routeInfo: "meetup",
     locs: [
       { city: "San Jose", spot: "…", type: "oneway", end: "…" },  // end: "" = shared with route instructions

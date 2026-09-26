@@ -54,7 +54,7 @@ export const FLYER_TEXT = {
   spotPlaceholder: "Meeting spot",
   safety: "Safety first: follow all traffic laws, drive at the pace of traffic, and no honking or sudden stops.",
   closingHeadline: "Open to all. Everyone’s welcome!",
-  closingSub: "Bring your family and friends - and your car.",
+  closingSub: "Bring your family, your friends and your car.",
   rsvpTitle: "RSVP",
   rsvpSub: "Scan to sign up",
   rsvpEmpty: ["Add form", "link"],
@@ -106,7 +106,7 @@ export const PRESETS = {
     label: "Atlanta",
     data: {
       date: "Sat, Oct 10",
-      time: "12 – 1 PM",
+      time: "12 to 1 PM",
       note: "right after Satsang",
       area: "metro Atlanta",
       rsvp: "",

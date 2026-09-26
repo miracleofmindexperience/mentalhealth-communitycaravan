@@ -293,7 +293,7 @@ function drawRoutes(ctx, layout, y) {
 
 /*
  * Loop cards: used instead of the route table when every route is a loop.
- * 1–3 cards per row, 2×2 for four.
+ * 1 to 3 cards per row, 2×2 for four.
  */
 function layoutCards(ctx, locs, W) {
   const n = Math.max(locs.length, 1), cols = n === 4 ? 2 : Math.min(n, 3), gap = L.cardGap;
