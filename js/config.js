@@ -70,7 +70,7 @@ export const FLYER_TEXT = {
 /* The WhatsApp message. Lines with *stars* render bold in WhatsApp. */
 export const MESSAGE_TEXT = {
   title: "🚗 *Community Caravan for World Mental Health Day*",
-  intro: "Join us for a silent group drive in our own cars, raising awareness about mental well-being and sharing *Miracle of Mind*, a free 7-minute meditation app. No honking, no speeches.",
+  intro: "Join us for a silent group drive in our own cars, raising awareness about mental well-being and sharing *Miracle of Mind*, a free 7-minute meditation app. No honking, no speeches. Just quiet, visible support.",
   locationsHeader: n => n > 1 ? "📍 *Routes:*" : "📍 *Route:*",
   loopSuffix: " (loop, back to start)",
   finishLater: "finish shared with route instructions",
