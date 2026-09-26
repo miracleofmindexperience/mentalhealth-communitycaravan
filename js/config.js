@@ -25,7 +25,9 @@ export const COLORS = {
   body: "#3A4460",
   divider: "#5A6690",
   subtle: "#D6DAE6",
-  cardBorder: "#E4DCCB"
+  cardBorder: "#E4DCCB",
+  logoTile: "#000000",
+  dash: "#B9BFCC"
 };
 
 export const FONTS = {
@@ -42,32 +44,54 @@ export const FLYER_TEXT = {
   titleLine2: "Caravan",
   appCaption: "Free 7-min meditation app · Scan",
   tagline: "Let’s drive the conversation.",
-  routeFooter: "START & FINISH · LOOP DRIVE",
+  description: "A silent group drive in our own cars, with mental-wellness signs and Miracle of Mind QR codes. No honking, no speeches. Just quiet, visible support.",
+  startHeader: "START",
+  finishHeader: "FINISH",
+  loopFinish: "Back to start",
+  finishLater: "Shared with route instructions",
   cityPlaceholder: "City",
   spotPlaceholder: "Meeting spot",
+  safety: "Safety first: follow all traffic laws, drive at the pace of traffic, and no honking or sudden stops.",
   closingHeadline: "Open to all. Everyone’s welcome!",
   closingSub: "Bring your family and friends - and your car.",
   rsvpTitle: "RSVP",
   rsvpSub: "Scan to sign up",
   rsvpEmpty: ["Add form", "link"],
-  /* Subtitle in the date strip. n = number of locations, area = area name. */
-  routesSummary: (n, area) =>
-    n <= 1
-      ? (area ? "Loop drive in " + area : "Loop drive")
-      : n + " loop routes" + (area ? " across " + area : "")
+  /* Subtitle in the date strip. n = number of locations, area = area name,
+     allLoops = every route ends where it starts. */
+  routesSummary: (n, area, allLoops) => {
+    const where = area ? (n <= 1 ? " in " : " across ") + area : "";
+    if (n <= 1) return (allLoops ? "Loop drive" : "Caravan drive") + where;
+    return n + (allLoops ? " loop routes" : " routes") + where;
+  }
 };
 
 /* The WhatsApp message. Lines with *stars* render bold in WhatsApp. */
 export const MESSAGE_TEXT = {
   title: "🚗 *Community Caravan for World Mental Health Day*",
-  intro: "A quiet, visible car ride to raise awareness about mental well-being and share *Miracle of Mind*, a free 7-minute meditation app.",
-  locationsHeader: n => n > 1
-    ? "📍 *Loop drives (start & finish at the same spot):*"
-    : "📍 *Loop drive (start & finish at the same spot):*",
+  intro: "A silent group drive in our own cars, with mental-wellness signs and QR codes for *Miracle of Mind*, a free 7-minute meditation app. No honking, no speeches. Just quiet, visible support for mental well-being.",
+  locationsHeader: n => n > 1 ? "📍 *Routes:*" : "📍 *Route:*",
+  loopSuffix: " (loop, back to start)",
+  finishLater: "finish shared with route instructions",
+  routeInfoIcon: "🧭 ",
+  safety: "🚦 *Safety first:* follow all traffic laws, drive at the pace of traffic, and no honking or sudden stops.",
   closing: "🙏 Open to all. Bring family & friends!",
   rsvpLabel: "✅ RSVP: ",
   rsvpMissing: "[GOOGLE FORM LINK]"
 };
+
+/* "When are route instructions shared?" choices. `text` is printed on the
+   flyer and in the message. */
+export const ROUTE_INFO = {
+  meetup: { label: "At the meetup point", text: "Route instructions will be shared at the meetup point." },
+  before: { label: "Before the event", text: "Route instructions will be shared before the event." },
+  both: { label: "Before the event and at the meetup point", text: "Route instructions will be shared before the event and again at the meetup point." }
+};
+export const DEFAULT_ROUTE_INFO = "meetup";
+
+/* Route types for each location. */
+export const ROUTE_TYPES = { oneway: "Start → finish", loop: "Loop (back to start)" };
+export const NEW_LOCATION_TYPE = "oneway";
 
 export const DOWNLOAD_PREFIX = "caravan-flyer-";
 
@@ -85,10 +109,11 @@ export const PRESETS = {
       note: "right after Satsang",
       area: "metro Atlanta",
       rsvp: "",
+      routeInfo: "meetup",
       locs: [
-        { city: "Cumming", spot: "Midway Park Community Building" },
-        { city: "Atlanta", spot: "Sheraton Atlanta Perimeter North" },
-        { city: "Duluth", spot: "W.P. Jones Bridge Park" }
+        { city: "Cumming", spot: "Midway Park Community Building", type: "oneway", end: "Fowler Park" },
+        { city: "Atlanta", spot: "Sheraton Atlanta Perimeter North", type: "oneway", end: "Downtown Alpharetta" },
+        { city: "Duluth", spot: "Gas South Convention Center", type: "oneway", end: "W.P. Jones Memorial Park" }
       ]
     }
   }

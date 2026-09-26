@@ -33,7 +33,8 @@
         <label for="f-area">Area name<input id="f-area" placeholder="e.g. the Bay Area"></label>
         <div id="locs" class="step"></div>
         <button type="button" class="link-btn" id="add-loc">+ Add a location</button>
-        <p class="hint">Each caravan loops back to where it starts. Up to <span id="max-locs">4</span> locations.</p>
+        <p class="hint">Up to <span id="max-locs">4</span> locations. Pick "Loop" if the drive ends where it starts. Leave the finish blank if you'll share it with the route instructions.</p>
+        <label for="f-route-info">Route instructions shared<select id="f-route-info"></select></label>
       </div>
 
       <div class="step">
@@ -66,9 +67,11 @@
 <!-- One location row; cloned by js/app.js for each location. -->
 <template id="loc-template">
   <div class="loc">
-    <label>City<input></label>
-    <label>Start &amp; finish spot<input></label>
+    <label class="c-city">City<input data-field="city"></label>
+    <label class="c-type">Route<select data-field="type"></select></label>
     <button type="button" class="icon-btn"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    <label class="c-spot">Start spot<input data-field="spot"></label>
+    <label class="c-end">Finish spot<input data-field="end" placeholder="Blank = share later"></label>
   </div>
 </template>
 

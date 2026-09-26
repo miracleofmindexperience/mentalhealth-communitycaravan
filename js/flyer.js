@@ -1,11 +1,12 @@
 /*
  * Draws the flyer onto a canvas. The flyer is built top to bottom from
- * sections (header, tagline, scene + date strip, route cards, closing row);
+ * sections (header, tagline + description, scene + date strip, route table,
+ * route-instructions line, closing row, safety footer);
  * each section is its own function, so one can be changed, reordered or
  * removed without touching the others. Text comes from config.js.
  */
-import { COLORS as C, FONTS, FLYER_TEXT as T, MOM_URL, LOGO_SRC } from "./config.js";
-import { activeLocs, rsvpValid } from "./state.js";
+import { COLORS as C, FONTS, FLYER_TEXT as T, MOM_URL, LOGO_SRC, ROUTE_INFO } from "./config.js";
+import { activeLocs, allLoops, rsvpValid } from "./state.js";
 import { roundRect, spacedWidth, spacedText, wrapText, fitFont, drawQR } from "./lib/canvas.js";
 
 const SERIF = FONTS.serif, SANS = FONTS.sans;
@@ -17,8 +18,7 @@ const L = {
   bandHeight: 286,
   sceneHeight: 236,
   closingHeight: 104,
-  bottomPad: 36,
-  cardGap: 16
+  bottomPad: 30
 };
 
 /* ---------- illustration shapes (scene artwork) ---------- */
@@ -71,8 +71,8 @@ function drawHeader(ctx) {
   // app card: logo + QR to the app
   const cx = W - M - 364, cy = 28;
   ctx.fillStyle = C.white; roundRect(ctx, cx, cy, 364, 230, 24); ctx.fill();
-  ctx.save(); roundRect(ctx, cx + 16, cy + 16, 160, 160, 16); ctx.clip();
-  ctx.drawImage(logo, cx + 16, cy + 16, 160, 160); ctx.restore();
+  ctx.fillStyle = C.logoTile; roundRect(ctx, cx + 16, cy + 16, 160, 160, 16); ctx.fill();
+  drawContained(ctx, logo, cx + 16 + 14, cy + 16 + 14, 132, 132);
   drawQR(ctx, MOM_URL, cx + 188, cy + 16, 160);
   fitFont(ctx, T.appCaption, "700", 21, SANS, 336, 14);
   ctx.fillStyle = C.forest; ctx.textAlign = "center";
@@ -80,9 +80,27 @@ function drawHeader(ctx) {
   ctx.textAlign = "left";
 }
 
-function drawTagline(ctx, y) {
+/* Draws an image scaled to fit inside the box, centered, without distortion. */
+function drawContained(ctx, img, x, y, w, h) {
+  if (!img.naturalWidth) return;
+  const k = Math.min(w / img.naturalWidth, h / img.naturalHeight);
+  const iw = img.naturalWidth * k, ih = img.naturalHeight * k;
+  ctx.drawImage(img, x + (w - iw) / 2, y + (h - ih) / 2, iw, ih);
+}
+
+/* Tagline plus the "what is a caravan" description. Returns its height. */
+function measureIntro(ctx) {
+  ctx.font = "400 22px " + SANS;
+  return 44 + 8 + wrapText(ctx, T.description, L.width - L.margin * 2).length * 30;
+}
+
+function drawIntro(ctx, y) {
+  ctx.textBaseline = "alphabetic";
   ctx.font = "italic 600 36px " + SERIF; ctx.fillStyle = C.navy;
   ctx.fillText(T.tagline, L.margin, y + 34);
+  ctx.font = "400 22px " + SANS; ctx.fillStyle = C.body;
+  wrapText(ctx, T.description, L.width - L.margin * 2)
+    .forEach((line, i) => ctx.fillText(line, L.margin, y + 44 + 8 + 22 + i * 30));
 }
 
 function drawCar(ctx, { x, body, win, plate, hub }) {
@@ -142,62 +160,152 @@ function drawDateStrip(ctx, state, y, h) {
     divider();
   });
 
-  const sub = T.routesSummary(activeLocs(state).length, (state.area || "").trim());
+  const locs = activeLocs(state);
+  const sub = T.routesSummary(locs.length, (state.area || "").trim(), allLoops(locs));
   const fs = fitFont(ctx, sub, "400", 26, SANS, M + CW - 28 - x, 16);
   ctx.font = "400 " + fs + "px " + SANS; ctx.fillStyle = C.subtle;
   ctx.fillText(sub, x, mid);
 }
 
-/* Measures route cards: 1–3 per row, 2×2 for four. */
-function layoutCards(ctx, locs, W) {
-  const n = Math.max(locs.length, 1), cols = n === 4 ? 2 : Math.min(n, 3), gap = L.cardGap;
-  const cw = (W - gap * (cols - 1)) / cols;
-  const rows = [];
-  ctx.font = "700 22px " + SANS;
-  locs.forEach((l, i) => {
-    const r = Math.floor(i / cols);
-    rows[r] = rows[r] || [];
-    rows[r].push({ l, lines: wrapText(ctx, (l.spot || "").trim() || T.spotPlaceholder, cw - 40) });
+/*
+ * Route table: one row per location with the city, start spot, a dashed
+ * connector with a car, and the finish (a place, "back to start" for loops,
+ * or "shared with route instructions" when left blank).
+ */
+const RT = { pad: 28, gap: 18, connector: 96, icon: 30, header: 38, rowPad: 22, maxFont: 22, minFont: 17 };
+
+function finishText(l) {
+  if (l.type === "loop") return { text: T.loopFinish, muted: true };
+  const end = (l.end || "").trim();
+  return end ? { text: end, muted: false } : { text: T.finishLater, muted: true };
+}
+
+function layoutRoutes(ctx, locs, W) {
+  const inner = W - RT.pad * 2;
+  ctx.font = "700 18px " + SANS;
+  const cities = locs.map(l => ((l.city || "").trim() || T.cityPlaceholder).toUpperCase());
+  const cityW = Math.min(160, Math.max(90, ...cities.map(c => spacedWidth(ctx, c, 2))));
+  const avail = inner - cityW - RT.connector - RT.gap * 2 - RT.icon * 2; // room for start + finish text
+  const items = locs.map((l, i) => ({ city: cities[i], start: (l.spot || "").trim() || T.spotPlaceholder, finish: finishText(l), loop: l.type === "loop" }));
+
+  // One font size for the whole table: the largest where the longest start and
+  // longest finish fit side by side on one line. Below the minimum, text wraps.
+  let size = RT.maxFont, startW, finishW;
+  const widest = key => Math.max(...items.map(it => ctx.measureText(key === "start" ? it.start : it.finish.text).width));
+  for (;;) {
+    ctx.font = "700 " + size + "px " + SANS;
+    startW = widest("start"); finishW = widest("finish");
+    if (startW + finishW <= avail || size <= RT.minFont) break;
+    size--;
+  }
+  let startTextW;
+  if (startW + finishW <= avail) startTextW = startW + (avail - startW - finishW) / 2; // share the slack
+  else startTextW = Math.min(startW, Math.max(avail / 2, avail - finishW)); // wrap the longer side
+  const finishTextW = avail - startTextW;
+  const colW = startTextW + RT.icon;
+
+  const lineH = size + 7;
+  const rows = items.map(it => {
+    const startLines = wrapText(ctx, it.start, startTextW), finishLines = wrapText(ctx, it.finish.text, finishTextW);
+    return { ...it, startLines, finishLines, h: Math.max(startLines.length, finishLines.length) * lineH + RT.rowPad };
   });
-  const heights = rows.map(row => 16 + 40 + 10 + Math.max(...row.map(c => c.lines.length)) * 27 + 8 + 20 + 18);
-  return { cw, gap, rows, heights, total: heights.reduce((a, b) => a + b, 0) + gap * (rows.length - 1) };
+  const cols = { city: RT.pad, start: RT.pad + cityW + RT.gap };
+  cols.connector = cols.start + colW;
+  cols.finish = cols.connector + RT.connector + RT.gap;
+  const total = RT.pad - 8 + RT.header + rows.reduce((a, r) => a + r.h, 0) + RT.pad - 14;
+  return { rows, cols, cityW, size, lineH, total };
 }
 
-function drawLoopIcon(ctx, x, y) {
-  ctx.save(); ctx.translate(x, y);
-  ctx.strokeStyle = C.accent; ctx.lineWidth = 3.5; ctx.lineCap = "round"; ctx.stroke(LOOP_ARC);
-  ctx.fillStyle = C.accent; ctx.fill(LOOP_HEAD);
-  ctx.fillStyle = C.navy; ctx.beginPath(); ctx.arc(20, 6, 4.5, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = C.white; ctx.beginPath(); ctx.arc(20, 6, 1.8, 0, Math.PI * 2); ctx.fill();
-  ctx.restore();
+function drawMiniCar(ctx, cx, cy) {
+  ctx.fillStyle = C.accent;
+  ctx.beginPath(); ctx.moveTo(cx - 10, cy - 4); ctx.lineTo(cx - 6, cy - 11); ctx.lineTo(cx + 6, cy - 11); ctx.lineTo(cx + 10, cy - 4); ctx.closePath(); ctx.fill();
+  roundRect(ctx, cx - 17, cy - 5, 34, 11, 4); ctx.fill();
+  ctx.fillStyle = C.navy;
+  [-9, 9].forEach(dx => { ctx.beginPath(); ctx.arc(cx + dx, cy + 6, 3.5, 0, Math.PI * 2); ctx.fill(); });
 }
 
-function drawRouteCard(ctx, card, x0, y, w, h) {
-  ctx.fillStyle = C.white; roundRect(ctx, x0, y, w, h, 18); ctx.fill();
-  ctx.strokeStyle = C.cardBorder; ctx.lineWidth = 2; roundRect(ctx, x0 + 1, y + 1, w - 2, h - 2, 17); ctx.stroke();
-  drawLoopIcon(ctx, x0 + 18, y + 16);
-
-  ctx.textBaseline = "middle"; ctx.fillStyle = C.accent;
-  const city = ((card.l.city || "").trim() || T.cityPlaceholder).toUpperCase();
-  const cfs = fitFont(ctx, city, "700", 20, SANS, w - 18 - 50 - 18 - city.length * 2, 13);
-  ctx.font = "700 " + cfs + "px " + SANS;
-  spacedText(ctx, city, x0 + 68, y + 36, 2);
-
-  ctx.textBaseline = "top"; ctx.font = "700 22px " + SANS; ctx.fillStyle = C.navy;
-  card.lines.forEach((ln, i) => ctx.fillText(ln, x0 + 18, y + 66 + i * 27));
-
-  let lf = 15; ctx.font = "700 15px " + SANS;
-  while (spacedWidth(ctx, T.routeFooter, 1) > w - 36 && lf > 11) { lf--; ctx.font = "700 " + lf + "px " + SANS; }
-  ctx.fillStyle = C.muted;
-  spacedText(ctx, T.routeFooter, x0 + 18, y + 66 + card.lines.length * 27 + 8, 1);
+function drawFlag(ctx, x, cy) {
+  ctx.strokeStyle = C.accent; ctx.lineWidth = 2.5; ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(x, cy - 9); ctx.lineTo(x, cy + 10); ctx.stroke();
+  ctx.fillStyle = C.accent;
+  ctx.beginPath(); ctx.moveTo(x, cy - 10); ctx.lineTo(x + 13, cy - 5); ctx.lineTo(x, cy); ctx.closePath(); ctx.fill();
 }
 
-function drawRouteCards(ctx, layout, y) {
-  layout.rows.forEach((row, ri) => {
-    const h = layout.heights[ri];
-    row.forEach((card, ci) => drawRouteCard(ctx, card, L.margin + ci * (layout.cw + layout.gap), y, layout.cw, h));
-    y += h + layout.gap;
+function drawStartDot(ctx, x, cy) {
+  ctx.strokeStyle = C.navy; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(x + 7, cy, 6.5, 0, Math.PI * 2); ctx.stroke();
+}
+
+function drawRoutes(ctx, layout, y) {
+  const M = L.margin, W = L.width - M * 2, { rows, cols, size, lineH } = layout;
+  ctx.fillStyle = C.white; roundRect(ctx, M, y, W, layout.total, 18); ctx.fill();
+  ctx.strokeStyle = C.cardBorder; ctx.lineWidth = 2; roundRect(ctx, M + 1, y + 1, W - 2, layout.total - 2, 17); ctx.stroke();
+
+  // column headers
+  ctx.textBaseline = "middle"; ctx.font = "700 14px " + SANS; ctx.fillStyle = C.muted;
+  const yh = y + RT.pad - 8 + 12;
+  spacedText(ctx, T.startHeader, M + cols.start, yh, 2);
+  spacedText(ctx, T.finishHeader, M + cols.finish, yh, 2);
+
+  let ry = y + RT.pad - 8 + RT.header;
+  rows.forEach(r => {
+    const mid = ry + lineH / 2;
+    // city
+    ctx.textBaseline = "middle"; ctx.fillStyle = C.accent;
+    let cfs = 18, sp = 2;
+    ctx.font = "700 18px " + SANS;
+    while (spacedWidth(ctx, r.city, sp) > layout.cityW && cfs > 11) { cfs--; sp = cfs < 15 ? 1 : 2; ctx.font = "700 " + cfs + "px " + SANS; }
+    spacedText(ctx, r.city, M + cols.city, mid, sp);
+    // start
+    drawStartDot(ctx, M + cols.start, mid);
+    ctx.font = "700 " + size + "px " + SANS; ctx.fillStyle = C.navy;
+    r.startLines.forEach((ln, i) => ctx.fillText(ln, M + cols.start + RT.icon, mid + i * lineH));
+    // connector
+    const cx = M + cols.connector + RT.gap + RT.connector / 2 - RT.gap / 2;
+    ctx.strokeStyle = C.dash; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+    ctx.moveTo(M + cols.connector + 6, mid); ctx.lineTo(cx - 24, mid);
+    ctx.moveTo(cx + 24, mid); ctx.lineTo(M + cols.finish - 10, mid);
+    ctx.stroke(); ctx.setLineDash([]);
+    drawMiniCar(ctx, cx, mid);
+    // finish
+    if (r.loop) {
+      ctx.save(); ctx.translate(M + cols.finish - 6, mid - 8); ctx.scale(0.8, 0.8);
+      ctx.strokeStyle = C.accent; ctx.lineWidth = 3.5; ctx.lineCap = "round"; ctx.stroke(LOOP_ARC);
+      ctx.fillStyle = C.accent; ctx.fill(LOOP_HEAD); ctx.restore();
+    } else {
+      drawFlag(ctx, M + cols.finish + 3, mid);
+    }
+    ctx.font = (r.finish.muted ? "500 " : "700 ") + size + "px " + SANS;
+    ctx.fillStyle = r.finish.muted ? C.muted : C.navy;
+    r.finishLines.forEach((ln, i) => ctx.fillText(ln, M + cols.finish + RT.icon, mid + i * lineH));
+    ry += r.h;
   });
+  ctx.textBaseline = "alphabetic";
+}
+
+/* "Route instructions will be shared…" line under the route table. */
+function drawRouteInfo(ctx, state, y) {
+  const text = ROUTE_INFO[state.routeInfo].text;
+  ctx.textBaseline = "middle";
+  drawFlag(ctx, L.margin + 6, y + 17);
+  fitFont(ctx, text, "700", 21, SANS, L.width - L.margin * 2 - 30, 15);
+  ctx.fillStyle = C.navy; ctx.fillText(text, L.margin + 30, y + 17);
+  ctx.textBaseline = "alphabetic";
+}
+
+/* Safety line across the bottom. Returns its height. */
+function measureSafety(ctx) {
+  ctx.font = "400 17px " + SANS;
+  return 18 + wrapText(ctx, T.safety, L.width - L.margin * 2).length * 24;
+}
+
+function drawSafety(ctx, y) {
+  const M = L.margin;
+  ctx.fillStyle = C.cardBorder; ctx.fillRect(M, y, L.width - M * 2, 2);
+  ctx.textBaseline = "top"; ctx.font = "400 17px " + SANS; ctx.fillStyle = C.body;
+  wrapText(ctx, T.safety, L.width - M * 2).forEach((ln, i) => ctx.fillText(ln, M, y + 16 + i * 24));
+  ctx.textBaseline = "alphabetic";
 }
 
 /* "Open to all" text on the left, RSVP label + QR on the right. */
@@ -232,22 +340,26 @@ export async function drawFlyer(canvas, state) {
   const ctx = canvas.getContext("2d");
   const M = L.margin, CW = L.width - M * 2;
   const locs = activeLocs(state).length ? activeLocs(state) : [{ city: "", spot: "" }];
-  const cards = layoutCards(ctx, locs, CW);
+  const routes = layoutRoutes(ctx, locs, CW);
 
   // vertical positions of each section
-  const yTagline = L.bandHeight + 16;
-  const yScene = yTagline + 44 + 14;
-  const yCards = yScene + L.sceneHeight + 14;
-  const yClosing = yCards + cards.total + 14;
-  const height = yClosing + L.closingHeight + L.bottomPad;
+  const yIntro = L.bandHeight + 16;
+  const yScene = yIntro + measureIntro(ctx) + 16;
+  const yRoutes = yScene + L.sceneHeight + 14;
+  const yRouteInfo = yRoutes + routes.total + 12;
+  const yClosing = yRouteInfo + 34 + 18;
+  const ySafety = yClosing + L.closingHeight + 22;
+  const height = ySafety + measureSafety(ctx) + L.bottomPad;
 
   canvas.width = L.width; canvas.height = height;
   ctx.textBaseline = "alphabetic"; ctx.textAlign = "left";
   ctx.fillStyle = C.cream; ctx.fillRect(0, 0, L.width, height);
 
   drawHeader(ctx);
-  drawTagline(ctx, yTagline);
+  drawIntro(ctx, yIntro);
   drawScene(ctx, state, yScene);
-  drawRouteCards(ctx, cards, yCards);
+  drawRoutes(ctx, routes, yRoutes);
+  drawRouteInfo(ctx, state, yRouteInfo);
   drawClosing(ctx, state, yClosing);
+  drawSafety(ctx, ySafety);
 }

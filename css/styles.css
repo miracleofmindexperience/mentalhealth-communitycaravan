@@ -32,10 +32,14 @@ h1{margin:0;font-family:Fraunces,Georgia,serif;font-weight:700;font-size:clamp(3
 .step h2 span{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--forest);color:var(--forest-ink);font-size:12px;letter-spacing:0}
 .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500;color:var(--muted)}
-input{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-width:0;width:100%}
-input:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
-.loc{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr) auto;gap:8px;align-items:end}
+input,select{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-width:0;width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.loc{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 40px;gap:8px;align-items:end;padding:12px;border:1px solid var(--line);border-radius:12px}
 .loc label{min-width:0}
+.loc .c-spot{grid-column:1}
+.loc .c-end{grid-column:2 / -1}
+.loc[data-type="loop"] .c-spot{grid-column:1 / -1}
+.loc[data-type="loop"] .c-end{display:none}
 .icon-btn{border:1px solid var(--line);background:var(--field);color:var(--muted);border-radius:10px;width:40px;height:40px;cursor:pointer;display:grid;place-items:center}
 .icon-btn:hover{color:var(--ink)}
 .link-btn{align-self:flex-start;border:1px dashed var(--line);background:transparent;color:var(--ink);border-radius:10px;padding:8px 12px;font:inherit;font-weight:500;cursor:pointer}

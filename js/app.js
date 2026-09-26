@@ -1,5 +1,5 @@
 /* Wires the form, the live flyer preview, the message box and the buttons together. */
-import { MAX_LOCATIONS, PRESETS, FONTS, DOWNLOAD_PREFIX } from "./config.js";
+import { MAX_LOCATIONS, PRESETS, FONTS, DOWNLOAD_PREFIX, ROUTE_INFO, ROUTE_TYPES, NEW_LOCATION_TYPE } from "./config.js";
 import { loadState, saveState, presetData, activePresetKey, activeLocs, rsvpValid } from "./state.js";
 import { buildMessage } from "./message.js";
 import { drawFlyer } from "./flyer.js";
@@ -9,7 +9,12 @@ const canvas = $("cv");
 let state = loadState();
 
 /* Simple text fields: input id -> state key. */
-const FIELDS = { "f-date": "date", "f-time": "time", "f-note": "note", "f-area": "area", "f-rsvp": "rsvp" };
+const FIELDS = { "f-date": "date", "f-time": "time", "f-note": "note", "f-area": "area", "f-rsvp": "rsvp", "f-route-info": "routeInfo" };
+
+function fillOptions(select, options) {
+  select.innerHTML = "";
+  Object.entries(options).forEach(([value, label]) => select.add(new Option(label, value)));
+}
 
 /* ---------- form ---------- */
 function fillForm() {
@@ -22,13 +27,19 @@ function renderLocs() {
   box.innerHTML = "";
   state.locs.forEach((l, i) => {
     const row = $("loc-template").content.firstElementChild.cloneNode(true);
-    const [cityLabel, spotLabel] = row.querySelectorAll("label");
-    const [c, s] = row.querySelectorAll("input");
-    c.id = "loc-city-" + i; cityLabel.htmlFor = c.id;
-    s.id = "loc-spot-" + i; spotLabel.htmlFor = s.id;
-    c.value = l.city; s.value = l.spot;
-    c.addEventListener("input", () => { state.locs[i].city = c.value; changed(); });
-    s.addEventListener("input", () => { state.locs[i].spot = s.value; changed(); });
+    row.dataset.type = l.type;
+    fillOptions(row.querySelector("select"), ROUTE_TYPES);
+    row.querySelectorAll("[data-field]").forEach(el => {
+      const key = el.dataset.field;
+      el.id = "loc-" + key + "-" + i;
+      el.closest("label").htmlFor = el.id;
+      el.value = l[key];
+      el.addEventListener(el.tagName === "SELECT" ? "change" : "input", () => {
+        state.locs[i][key] = el.value;
+        if (key === "type") row.dataset.type = el.value;
+        changed();
+      });
+    });
     const rm = row.querySelector("button");
     rm.setAttribute("aria-label", "Remove location " + (i + 1));
     rm.disabled = state.locs.length <= 1;
@@ -44,7 +55,7 @@ Object.entries(FIELDS).forEach(([id, key]) => {
 
 $("add-loc").addEventListener("click", () => {
   if (state.locs.length >= MAX_LOCATIONS) return;
-  state.locs.push({ city: "", spot: "" });
+  state.locs.push({ city: "", spot: "", type: NEW_LOCATION_TYPE, end: "" });
   renderLocs(); changed();
   $("loc-city-" + (state.locs.length - 1))?.focus();
 });
@@ -103,6 +114,7 @@ $("dl").addEventListener("click", async () => {
 /* ---------- start ---------- */
 $("reset").textContent = "Reset to the " + PRESETS[activePresetKey()].label + " example";
 $("max-locs").textContent = MAX_LOCATIONS;
+fillOptions($("f-route-info"), Object.fromEntries(Object.entries(ROUTE_INFO).map(([k, v]) => [k, v.label])));
 fillForm(); updateMessage(); updateWarn();
 render();
 Promise.all(FONTS.preload.map(f => document.fonts.load(f)))

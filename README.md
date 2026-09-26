@@ -22,7 +22,9 @@ Settings → Pages → Deploy from branch → `main` / root. The `.nojekyll` fil
 
 | I want to change… | Edit |
 |---|---|
-| Any text on the flyer (badge, title, tagline, RSVP labels…) | `js/config.js` → `FLYER_TEXT` |
+| Any text on the flyer (badge, title, tagline, caravan description, safety line, RSVP labels…) | `js/config.js` → `FLYER_TEXT` |
+| "Route instructions will be shared…" choices | `js/config.js` → `ROUTE_INFO` |
+| Route types (Start → finish / Loop) and the default for new locations | `js/config.js` → `ROUTE_TYPES`, `NEW_LOCATION_TYPE` |
 | The WhatsApp message wording | `js/config.js` → `MESSAGE_TEXT` |
 | Flyer colors | `js/config.js` → `COLORS` |
 | The Miracle of Mind link / logo | `js/config.js` → `MOM_URL`, `LOGO_SRC` (`assets/mom-logo.png`) |
@@ -41,7 +43,11 @@ bayarea: {
   label: "Bay Area",
   data: {
     date: "Sat, Oct 10", time: "10 – 11 AM", note: "", area: "the Bay Area", rsvp: "https://forms.gle/…",
-    locs: [{ city: "San Jose", spot: "…" }, { city: "Fremont", spot: "…" }]
+    routeInfo: "meetup",
+    locs: [
+      { city: "San Jose", spot: "…", type: "oneway", end: "…" },  // end: "" = shared with route instructions
+      { city: "Fremont", spot: "…", type: "loop" }
+    ]
   }
 }
 ```
