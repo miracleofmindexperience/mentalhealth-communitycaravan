@@ -120,13 +120,9 @@ function drawCar(ctx, { x, body, win, plate, hub }) {
   ctx.restore();
 }
 
-/* Landscape with cars, plus the navy date strip across its bottom. */
-function drawScene(ctx, state, y) {
-  const M = L.margin, CW = L.width - M * 2, H = L.sceneHeight;
-  ctx.save(); roundRect(ctx, M, y, CW, H, 22); ctx.clip();
-  ctx.fillStyle = "#EEF3E9"; ctx.fillRect(M, y, CW, H);
-
-  ctx.save(); ctx.translate(0, y - 110);
+/* Sun, hills, trees, road and cars in scene coordinates (1080 wide; road
+   from y 232 to 280). Shared by the flyer and the form header. */
+function drawLandscape(ctx) {
   ctx.fillStyle = "#F2C98A"; ctx.beginPath(); ctx.arc(900, 140, 28, 0, Math.PI * 2); ctx.fill();
   HILLS.forEach(([c, p]) => { ctx.fillStyle = c; ctx.fill(p); });
   ctx.fillStyle = "#93AD88";
@@ -138,7 +134,14 @@ function drawScene(ctx, state, y) {
   ctx.strokeStyle = "rgba(246,241,231,0.7)"; ctx.setLineDash([22, 18]);
   ctx.beginPath(); ctx.moveTo(0, 258); ctx.lineTo(L.width, 258); ctx.stroke(); ctx.setLineDash([]);
   CARS.forEach(car => drawCar(ctx, car));
-  ctx.restore();
+}
+
+/* Landscape with cars, plus the navy date strip across its bottom. */
+function drawScene(ctx, state, y) {
+  const M = L.margin, CW = L.width - M * 2, H = L.sceneHeight;
+  ctx.save(); roundRect(ctx, M, y, CW, H, 22); ctx.clip();
+  ctx.fillStyle = "#EEF3E9"; ctx.fillRect(M, y, CW, H);
+  ctx.save(); ctx.translate(0, y - 110); drawLandscape(ctx); ctx.restore();
 
   drawDateStrip(ctx, state, y + 170, H - 170); // still inside the rounded clip
   ctx.restore();
@@ -465,4 +468,49 @@ export async function drawFlyer(canvas, state) {
   if (info) drawRouteInfo(ctx, info, yRouteInfo);
   drawClosing(ctx, state, yClosing);
   drawSafety(ctx, ySafety);
+}
+
+/*
+ * Google Form header: a 1600x400 banner (the 4:1 shape Forms uses) with the
+ * flyer's title band on top and the landscape with cars along the bottom.
+ * Kept generic (no date or places) so any city can use it.
+ */
+export const BANNER = { width: 1600, height: 400, sceneTop: 150 }; // sceneTop: scene y where the crop starts
+
+export async function drawBanner(canvas) {
+  await logoReady;
+  const ctx = canvas.getContext("2d");
+  const W = BANNER.width, H = BANNER.height, M = 64;
+  const scale = W / L.width;                                // landscape stretched to full width
+  const sceneH = (280 - BANNER.sceneTop) * scale;           // visible part of the landscape
+  const bandH = H - sceneH;
+  canvas.width = W; canvas.height = H;
+  ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
+
+  // landscape along the bottom
+  ctx.fillStyle = "#EEF3E9"; ctx.fillRect(0, bandH, W, sceneH);
+  ctx.save(); ctx.beginPath(); ctx.rect(0, bandH, W, sceneH); ctx.clip();
+  ctx.translate(0, bandH); ctx.scale(scale, scale); ctx.translate(0, -BANNER.sceneTop);
+  drawLandscape(ctx);
+  ctx.restore();
+
+  // title band
+  ctx.fillStyle = C.forest; ctx.fillRect(0, 0, W, bandH);
+  ctx.font = "700 18px " + SANS;
+  const pw = spacedWidth(ctx, T.badge, 3) + 32;
+  ctx.fillStyle = C.accent; roundRect(ctx, M, 26, pw, 34, 17); ctx.fill();
+  ctx.fillStyle = C.white; ctx.textBaseline = "middle";
+  spacedText(ctx, T.badge, M + 16, 44, 3);
+  ctx.textBaseline = "alphabetic";
+  ctx.font = "700 72px " + SERIF;
+  ctx.fillStyle = C.white; ctx.fillText(T.titleLine1 + " ", M - 2, 128);
+  const w1 = ctx.measureText(T.titleLine1 + " ").width;
+  ctx.fillStyle = C.gold; ctx.fillText(T.titleLine2, M - 2 + w1, 128);
+  ctx.font = "italic 600 30px " + SERIF; ctx.fillStyle = C.cream;
+  ctx.fillText(T.tagline, M, 170);
+
+  // Miracle of Mind logo tile, top right
+  const tile = bandH - 40;
+  ctx.fillStyle = C.logoTile; roundRect(ctx, W - M - tile, 20, tile, tile, 16); ctx.fill();
+  drawContained(ctx, logo, W - M - tile + 12, 32, tile - 24, tile - 24);
 }

@@ -69,3 +69,5 @@ canvas{display:none}
 .loc[data-own="false"] .c-date,.loc[data-own="false"] .c-time{display:none}
 .msg .warn{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .msg .warn .link-btn{padding:4px 10px}
+.frame-title{margin:0;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.frame #banner-out{display:block;width:100%;height:auto;border-radius:8px}

@@ -3,7 +3,7 @@
 import { MAX_LOCATIONS, PRESETS, FONTS, DOWNLOAD_PREFIX, ROUTE_INFO, ROUTE_TYPES, NEW_LOCATION_TYPE } from "./config.js";
 import { loadState, saveState, presetData, activePresetKey, activeLocs, rsvpValid, autoStripText, newLoc } from "./state.js";
 import { buildMessage } from "./message.js";
-import { drawFlyer } from "./flyer.js";
+import { drawFlyer, drawBanner } from "./flyer.js";
 
 const $ = id => document.getElementById(id);
 const canvas = $("cv");
@@ -159,19 +159,33 @@ $("copy").addEventListener("click", () => {
 });
 
 /* ---------- download ---------- */
-$("dl").addEventListener("click", async () => {
-  const st = $("dl-status");
-  await render();
-  const slug = (activeLocs(state)[0]?.city || "city").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "city";
-  canvas.toBlob(blob => {
+function downloadCanvas(cv, filename, st) {
+  cv.toBlob(blob => {
     if (!blob) { st.textContent = "Couldn't create the image. Right-click or long-press the preview and choose Save image."; return; }
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = DOWNLOAD_PREFIX + slug + ".png";
+    a.href = url; a.download = filename;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 4000);
     st.textContent = "Downloaded. On a phone, you can also long-press the preview to save it.";
   }, "image/png");
+}
+
+$("dl").addEventListener("click", async () => {
+  await render();
+  const slug = (activeLocs(state)[0]?.city || "city").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "city";
+  downloadCanvas(canvas, DOWNLOAD_PREFIX + slug + ".png", $("dl-status"));
+});
+
+/* Form header: the same for every city, so it's drawn once (after fonts load). */
+const bannerCanvas = document.createElement("canvas");
+async function renderBanner() {
+  await drawBanner(bannerCanvas);
+  $("banner-out").src = bannerCanvas.toDataURL("image/png");
+}
+$("dl-banner").addEventListener("click", async () => {
+  await renderBanner();
+  downloadCanvas(bannerCanvas, "caravan-form-header.png", $("banner-status"));
 });
 
 /* ---------- start ---------- */
@@ -183,4 +197,4 @@ render();
 Promise.all(FONTS.preload.map(f => document.fonts.load(f)))
   .catch(() => {})
   .then(() => document.fonts.ready)
-  .then(render, render);
+  .then(() => { render(); renderBanner(); }, () => { render(); renderBanner(); });
