@@ -75,18 +75,31 @@ export const MESSAGE_TEXT = {
   loopSuffix: " (loop, back to start)",
   finishLater: "finish shared with route instructions",
   routeInfoIcon: "🧭 ",
-  safety: "🚦 *Safety first:* follow all traffic laws, drive at the pace of traffic, and no honking or sudden stops.",
+  /* Safety points are joined on one line with the separator. */
+  safetyLabel: "⚠️ *Safety guidelines:* ",
+  safetyPoints: [
+    "Put safe driving first, always",
+    "Follow all rules of the road",
+    "Drive at the pace of traffic, no honking or sudden stops"
+  ],
+  separator: " · ",
+  materialsIcon: "🚩 ",
   closing: "🙏 Open to all. Bring family & friends!",
   rsvpLabel: "✅ RSVP: ",
-  rsvpMissing: "[GOOGLE FORM LINK]"
+  rsvpMissing: "[GOOGLE FORM LINK]",
+  contactLabel: "📩 Questions? Contact "
 };
+
+/* Starting text for the message's materials note. Coordinators can edit or clear it. */
+export const DEFAULT_MATERIALS = "Caravan materials such as magnets, stickers or flags will be provided.";
 
 /* "When are route instructions shared?" choices. `text` is printed on the
    flyer and in the message. */
 export const ROUTE_INFO = {
   meetup: { label: "At the meetup point", text: "Route instructions will be shared at the meetup point." },
   before: { label: "Before the event", text: "Route instructions will be shared before the event." },
-  both: { label: "Before the event and at the meetup point", text: "Route instructions will be shared before the event and again at the meetup point." }
+  both: { label: "Before the event and at the meetup point", text: "Route instructions will be shared before the event and again at the meetup point." },
+  custom: { label: "Other (type your own)", text: null } // uses the coordinator's wording
 };
 export const DEFAULT_ROUTE_INFO = "meetup";
 
@@ -111,6 +124,7 @@ export const PRESETS = {
       area: "metro Atlanta",
       rsvp: "",
       routeInfo: "meetup",
+      contact: "",
       locs: [
         { city: "Cumming", spot: "Midway Park Community Building", type: "loop" },
         { city: "Atlanta", spot: "Sheraton Atlanta Perimeter North", type: "loop" },

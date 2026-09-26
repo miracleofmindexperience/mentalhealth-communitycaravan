@@ -5,8 +5,8 @@
  * each section is its own function, so one can be changed, reordered or
  * removed without touching the others. Text comes from config.js.
  */
-import { COLORS as C, FONTS, FLYER_TEXT as T, MOM_URL, LOGO_SRC, ROUTE_INFO } from "./config.js";
-import { activeLocs, allLoops, rsvpValid, rsvpUrl, stripText } from "./state.js";
+import { COLORS as C, FONTS, FLYER_TEXT as T, MOM_URL, LOGO_SRC } from "./config.js";
+import { activeLocs, allLoops, rsvpValid, rsvpUrl, stripText, stripWhen, locWhen, hasMultipleWhens, routeInfoText } from "./state.js";
 import { roundRect, spacedWidth, spacedText, wrapText, fitFont, drawQR } from "./lib/canvas.js";
 
 const SERIF = FONTS.serif, SANS = FONTS.sans;
@@ -153,7 +153,8 @@ function drawDateStrip(ctx, state, y, h) {
   ctx.font = "700 36px " + SERIF;
 
   // date | time | strip text, with a divider between whichever are present
-  const parts = [(state.date || "").trim(), (state.time || "").trim()].filter(Boolean);
+  const when = stripWhen(state);
+  const parts = [when.date, when.time].filter(Boolean);
   const sub = stripText(state);
   let first = true;
   const divider = () => {
@@ -162,6 +163,7 @@ function drawDateStrip(ctx, state, y, h) {
   };
   parts.forEach(part => {
     divider();
+    fitFont(ctx, part, "700", 36, SERIF, CW * 0.6, 22); // long date lists shrink
     ctx.fillStyle = C.cream; ctx.fillText(part, x, mid);
     x += ctx.measureText(part).width;
   });
@@ -187,13 +189,14 @@ function finishText(l) {
   return end ? { text: end, muted: false } : { text: T.finishLater, muted: true };
 }
 
-function layoutRoutes(ctx, locs, W) {
+/* whens: each location's { date, time } when they differ, otherwise null. */
+function layoutRoutes(ctx, locs, W, whens) {
   const inner = W - RT.pad * 2;
   ctx.font = "700 18px " + SANS;
   const cities = locs.map(l => ((l.city || "").trim() || T.cityPlaceholder).toUpperCase());
   const cityW = Math.min(160, Math.max(90, ...cities.map(c => spacedWidth(ctx, c, 2))));
   const avail = inner - cityW - RT.connector - RT.gap * 2 - RT.icon * 2; // room for start + finish text
-  const items = locs.map((l, i) => ({ city: cities[i], start: (l.spot || "").trim() || T.spotPlaceholder, finish: finishText(l), loop: l.type === "loop" }));
+  const items = locs.map((l, i) => ({ city: cities[i], start: (l.spot || "").trim() || T.spotPlaceholder, finish: finishText(l), loop: l.type === "loop", when: whens && whens[i] }));
 
   // One font size for the whole table: the largest where the longest start and
   // longest finish fit side by side on one line. Below the minimum, text wraps.
@@ -214,7 +217,9 @@ function layoutRoutes(ctx, locs, W) {
   const lineH = size + 7;
   const rows = items.map(it => {
     const startLines = wrapText(ctx, it.start, startTextW), finishLines = wrapText(ctx, it.finish.text, finishTextW);
-    return { ...it, startLines, finishLines, h: Math.max(startLines.length, finishLines.length) * lineH + RT.rowPad };
+    const textH = Math.max(startLines.length, finishLines.length) * lineH;
+    const cityH = it.when ? lineH + 40 : 0; // city plus its date and time lines
+    return { ...it, startLines, finishLines, h: Math.max(textH, cityH) + RT.rowPad };
   });
   const cols = { city: RT.pad, start: RT.pad + cityW + RT.gap };
   cols.connector = cols.start + colW;
@@ -263,6 +268,14 @@ function drawRoutes(ctx, layout, y) {
     ctx.font = "700 18px " + SANS;
     while (spacedWidth(ctx, r.city, sp) > layout.cityW && cfs > 11) { cfs--; sp = cfs < 15 ? 1 : 2; ctx.font = "700 " + cfs + "px " + SANS; }
     spacedText(ctx, r.city, M + cols.city, mid, sp);
+    if (r.when) {
+      ctx.textBaseline = "top"; ctx.fillStyle = C.body;
+      [r.when.date, r.when.time].filter(Boolean).forEach((t, i) => {
+        fitFont(ctx, t, "600", 15, SANS, layout.cityW, 11);
+        ctx.fillText(t, M + cols.city, mid + lineH / 2 + 4 + i * 19);
+      });
+      ctx.textBaseline = "middle";
+    }
     // start
     drawStartDot(ctx, M + cols.start, mid);
     ctx.font = "700 " + size + "px " + SANS; ctx.fillStyle = C.navy;
@@ -295,7 +308,7 @@ function drawRoutes(ctx, layout, y) {
  * Loop cards: used instead of the route table when every route is a loop.
  * 1 to 3 cards per row, 2×2 for four.
  */
-function layoutCards(ctx, locs, W) {
+function layoutCards(ctx, locs, W, whens) {
   const n = Math.max(locs.length, 1), cols = n === 4 ? 2 : Math.min(n, 3), gap = L.cardGap;
   const cw = (W - gap * (cols - 1)) / cols;
   const rows = [];
@@ -303,11 +316,15 @@ function layoutCards(ctx, locs, W) {
   locs.forEach((l, i) => {
     const r = Math.floor(i / cols);
     rows[r] = rows[r] || [];
-    rows[r].push({ l, lines: wrapText(ctx, (l.spot || "").trim() || T.spotPlaceholder, cw - 40) });
+    const when = whens && [whens[i].date, whens[i].time].filter(Boolean).join(" · ");
+    rows[r].push({ l, when, lines: wrapText(ctx, (l.spot || "").trim() || T.spotPlaceholder, cw - 40) });
   });
-  const heights = rows.map(row => 16 + 40 + 10 + Math.max(...row.map(c => c.lines.length)) * 27 + 8 + 20 + 18);
+  const whenH = whens ? CARD_WHEN_H : 0;
+  const heights = rows.map(row => 16 + 40 + 10 + Math.max(...row.map(c => c.lines.length)) * 27 + whenH + 8 + 20 + 18);
   return { cw, gap, rows, heights, total: heights.reduce((a, b) => a + b, 0) + gap * (rows.length - 1) };
 }
+
+const CARD_WHEN_H = 26; // date line on each card when locations differ
 
 function drawLoopIcon(ctx, x, y) {
   ctx.save(); ctx.translate(x, y);
@@ -331,11 +348,17 @@ function drawRouteCard(ctx, card, x0, y, w, h) {
 
   ctx.textBaseline = "top"; ctx.font = "700 22px " + SANS; ctx.fillStyle = C.navy;
   card.lines.forEach((ln, i) => ctx.fillText(ln, x0 + 18, y + 66 + i * 27));
+  let yFoot = y + 66 + card.lines.length * 27 + 8;
+  if (card.when) {
+    fitFont(ctx, card.when, "600", 17, SANS, w - 36, 12); ctx.fillStyle = C.body;
+    ctx.fillText(card.when, x0 + 18, yFoot - 2);
+    yFoot += CARD_WHEN_H;
+  }
 
   let lf = 15; ctx.font = "700 15px " + SANS;
   while (spacedWidth(ctx, T.routeFooter, 1) > w - 36 && lf > 11) { lf--; ctx.font = "700 " + lf + "px " + SANS; }
   ctx.fillStyle = C.muted;
-  spacedText(ctx, T.routeFooter, x0 + 18, y + 66 + card.lines.length * 27 + 8, 1);
+  spacedText(ctx, T.routeFooter, x0 + 18, yFoot, 1);
 }
 
 function drawRouteCards(ctx, layout, y) {
@@ -347,8 +370,7 @@ function drawRouteCards(ctx, layout, y) {
 }
 
 /* "Route instructions will be shared…" line under the route table. */
-function drawRouteInfo(ctx, state, y) {
-  const text = ROUTE_INFO[state.routeInfo].text;
+function drawRouteInfo(ctx, text, y) {
   ctx.textBaseline = "middle";
   drawFlag(ctx, L.margin + 6, y + 14);
   fitFont(ctx, text, "700", 21, SANS, L.width - L.margin * 2 - 30, 15);
@@ -417,14 +439,17 @@ export async function drawFlyer(canvas, state) {
   const locs = activeLocs(state).length ? activeLocs(state) : [{ city: "", spot: "" }];
   // All loops: loop cards. Any start → finish route: the route table.
   const loopsOnly = allLoops(locs);
-  const routes = loopsOnly ? layoutCards(ctx, locs, CW) : layoutRoutes(ctx, locs, CW);
+  // When locations are on different dates, each route shows its own date and time.
+  const whens = hasMultipleWhens(state) ? locs.map(l => locWhen(state, l)) : null;
+  const routes = loopsOnly ? layoutCards(ctx, locs, CW, whens) : layoutRoutes(ctx, locs, CW, whens);
+  const info = routeInfoText(state); // "" = no route-instructions line
 
   // vertical positions of each section
   const yIntro = L.bandHeight + 16;
   const yScene = yIntro + measureIntro(ctx) + 16;
   const yRoutes = yScene + L.sceneHeight + 14;
   const yRouteInfo = yRoutes + routes.total + 12;
-  const yClosing = yRouteInfo + 28 + 4;
+  const yClosing = yRouteInfo + (info ? 28 + 4 : 0);
   const ySafety = yClosing + L.closingHeight + 14;
   const height = ySafety + measureSafety(ctx) + L.bottomPad;
 
@@ -437,7 +462,7 @@ export async function drawFlyer(canvas, state) {
   drawScene(ctx, state, yScene);
   if (loopsOnly) drawRouteCards(ctx, routes, yRoutes);
   else drawRoutes(ctx, routes, yRoutes);
-  drawRouteInfo(ctx, state, yRouteInfo);
+  if (info) drawRouteInfo(ctx, info, yRouteInfo);
   drawClosing(ctx, state, yClosing);
   drawSafety(ctx, ySafety);
 }

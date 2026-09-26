@@ -28,8 +28,8 @@ h1{margin:0;font-family:Fraunces,Georgia,serif;font-weight:700;font-size:clamp(3
 @media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:18px}
 .step{display:flex;flex-direction:column;gap:10px}
-.step h2{margin:0;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;gap:8px;align-items:center}
-.step h2 span{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--forest);color:var(--forest-ink);font-size:12px;letter-spacing:0}
+.step h3{margin:0;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:flex;gap:8px;align-items:center}
+.block-title span{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--forest);color:var(--forest-ink);font-size:12px;letter-spacing:0}
 .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:500;color:var(--muted)}
 input,select{font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:10px;padding:9px 11px;min-width:0;width:100%}
@@ -59,3 +59,13 @@ textarea{font:14px/1.5 "DM Sans",system-ui,sans-serif;color:var(--ink);backgroun
 .msg h2{margin:0;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 canvas{display:none}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+.block{display:flex;flex-direction:column;gap:14px;margin-bottom:36px}
+.block-title{margin:0;font-family:Fraunces,Georgia,serif;font-size:26px;font-weight:700;display:flex;gap:10px;align-items:center}
+.block-title span{width:28px;height:28px;font-family:"DM Sans",system-ui,sans-serif;font-size:14px}
+.loc .c-own{grid-column:1 / -1;flex-direction:row;align-items:center;gap:8px}
+.loc .c-own input{width:auto;margin:0}
+.loc .c-date{grid-column:1}
+.loc .c-time{grid-column:2 / -1}
+.loc[data-own="false"] .c-date,.loc[data-own="false"] .c-time{display:none}
+.msg .warn{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.msg .warn .link-btn{padding:4px 10px}

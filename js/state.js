@@ -1,4 +1,4 @@
-import { STORAGE_KEY, PRESETS, DEFAULT_PRESET, ROUTE_INFO, DEFAULT_ROUTE_INFO, ROUTE_TYPES, FLYER_TEXT } from "./config.js";
+import { STORAGE_KEY, PRESETS, DEFAULT_PRESET, ROUTE_INFO, DEFAULT_ROUTE_INFO, ROUTE_TYPES, FLYER_TEXT, DEFAULT_MATERIALS } from "./config.js";
 
 /* Which preset the page is using: ?preset=<key> if valid, else the default. */
 export function activePresetKey() {
@@ -13,15 +13,30 @@ export function presetData(key = activePresetKey()) {
 /* Fills in fields missing from older saved drafts or presets.
    Drafts saved before route types existed were all loops. */
 function normalize(s) {
-  s.locs = s.locs.map(l => ({
+  s.locs = s.locs.map(newLoc);
+  if (!ROUTE_INFO[s.routeInfo]) s.routeInfo = DEFAULT_ROUTE_INFO;
+  const str = v => typeof v === "string" ? v : "";
+  s.routeInfoText = str(s.routeInfoText);
+  s.note = str(s.note);
+  s.contact = str(s.contact);
+  if (typeof s.materials !== "string") s.materials = DEFAULT_MATERIALS;
+  if (typeof s.strip !== "string") s.strip = null;     // null = automatic text
+  if (typeof s.message !== "string") s.message = null; // null = built from the form
+  return s;
+}
+
+/* A location with every field present. */
+export function newLoc(l = {}) {
+  return {
     city: l.city || "",
     spot: l.spot || "",
     type: ROUTE_TYPES[l.type] ? l.type : "loop",
-    end: l.end || ""
-  }));
-  if (!ROUTE_INFO[s.routeInfo]) s.routeInfo = DEFAULT_ROUTE_INFO;
-  if (typeof s.strip !== "string") s.strip = null; // null = automatic text
-  return s;
+    end: l.end || "",
+    address: l.address || "",   // message only
+    ownWhen: !!l.ownWhen,       // true = its own date/time below
+    date: l.date || "",
+    time: l.time || ""
+  };
 }
 
 /* A ?preset= link always starts fresh from that preset; otherwise resume the saved draft. */
@@ -46,6 +61,49 @@ export function activeLocs(state) {
 
 export function allLoops(locs) {
   return locs.length > 0 && locs.every(l => l.type === "loop");
+}
+
+/* Date and time for one location: its own if set, otherwise the main ones. */
+export function locWhen(state, l) {
+  const own = l.ownWhen;
+  return {
+    date: ((own && l.date.trim()) || state.date || "").trim(),
+    time: ((own && l.time.trim()) || state.time || "").trim()
+  };
+}
+
+/* True when the locations don't all share the same date and time. */
+export function hasMultipleWhens(state) {
+  const keys = activeLocs(state).map(l => { const w = locWhen(state, l); return w.date + "|" + w.time; });
+  return new Set(keys).size > 1;
+}
+
+/* Date and time for the flyer's date strip. When locations differ, lists
+   every date ("Sat, Oct 10, 17 & 24" if they share a prefix) and keeps the
+   time only if it's the same everywhere. */
+export function stripWhen(state) {
+  if (!hasMultipleWhens(state)) return { date: (state.date || "").trim(), time: (state.time || "").trim() };
+  const whens = activeLocs(state).map(l => locWhen(state, l));
+  const uniq = list => [...new Set(list.filter(Boolean))];
+  const dates = uniq(whens.map(w => w.date)), times = uniq(whens.map(w => w.time));
+  return { date: compactDates(dates), time: times.length === 1 ? times[0] : "" };
+}
+
+function joinList(items) {
+  return items.length <= 1 ? items.join("") : items.slice(0, -1).join(", ") + " & " + items[items.length - 1];
+}
+
+/* ["Sat, Oct 10", "Sat, Oct 17"] -> "Sat, Oct 10 & 17"; otherwise joined with " · ". */
+function compactDates(dates) {
+  const parts = dates.map(d => d.match(/^(.*?)(\d{1,2})$/));
+  if (parts.length > 1 && parts.every(p => p && p[1] === parts[0][1])) return parts[0][1] + joinList(parts.map(p => p[2]));
+  return dates.join(" · ");
+}
+
+/* The "route instructions will be shared…" sentence ("" if left blank). */
+export function routeInfoText(state) {
+  const opt = ROUTE_INFO[state.routeInfo];
+  return (opt.text === null ? state.routeInfoText : opt.text).trim();
 }
 
 /* The line next to the date on the flyer, worked out from the routes and area. */

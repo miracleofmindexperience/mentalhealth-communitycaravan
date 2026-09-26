@@ -1,6 +1,7 @@
-/* Wires the form, the live flyer preview, the message box and the buttons together. */
+/* Wires the two sections together: the flyer form and preview, then the
+   WhatsApp message (built from the flyer inputs plus message-only fields). */
 import { MAX_LOCATIONS, PRESETS, FONTS, DOWNLOAD_PREFIX, ROUTE_INFO, ROUTE_TYPES, NEW_LOCATION_TYPE } from "./config.js";
-import { loadState, saveState, presetData, activePresetKey, activeLocs, rsvpValid, autoStripText } from "./state.js";
+import { loadState, saveState, presetData, activePresetKey, activeLocs, rsvpValid, autoStripText, newLoc } from "./state.js";
 import { buildMessage } from "./message.js";
 import { drawFlyer } from "./flyer.js";
 
@@ -8,8 +9,14 @@ const $ = id => document.getElementById(id);
 const canvas = $("cv");
 let state = loadState();
 
-/* Simple text fields: input id -> state key. */
-const FIELDS = { "f-date": "date", "f-time": "time", "f-note": "note", "f-area": "area", "f-rsvp": "rsvp", "f-route-info": "routeInfo" };
+/* Simple fields: input id -> state key. */
+const FIELDS = {
+  // flyer
+  "f-date": "date", "f-time": "time", "f-area": "area", "f-rsvp": "rsvp",
+  "f-route-info": "routeInfo", "f-route-info-text": "routeInfoText",
+  // message only
+  "f-note": "note", "f-materials": "materials", "f-contact": "contact"
+};
 
 function fillOptions(select, options) {
   select.innerHTML = "";
@@ -21,6 +28,11 @@ function fillForm() {
   Object.entries(FIELDS).forEach(([id, key]) => { $(id).value = state[key] || ""; });
   renderLocs();
   updateStrip();
+  updateRouteInfo();
+}
+
+function updateRouteInfo() {
+  $("route-info-text-wrap").hidden = state.routeInfo !== "custom";
 }
 
 /* Strip text: shows the automatic text (kept in sync with the routes) until
@@ -39,15 +51,22 @@ function renderLocs() {
   state.locs.forEach((l, i) => {
     const row = $("loc-template").content.firstElementChild.cloneNode(true);
     row.dataset.type = l.type;
+    row.dataset.own = l.ownWhen;
     fillOptions(row.querySelector("select"), ROUTE_TYPES);
     row.querySelectorAll("[data-field]").forEach(el => {
-      const key = el.dataset.field;
+      const key = el.dataset.field, box = el.type === "checkbox";
       el.id = "loc-" + key + "-" + i;
       el.closest("label").htmlFor = el.id;
-      el.value = l[key];
-      el.addEventListener(el.tagName === "SELECT" ? "change" : "input", () => {
-        state.locs[i][key] = el.value;
+      if (box) el.checked = l[key]; else el.value = l[key];
+      el.addEventListener(el.tagName === "SELECT" || box ? "change" : "input", () => {
+        state.locs[i][key] = box ? el.checked : el.value;
         if (key === "type") row.dataset.type = el.value;
+        if (key === "ownWhen") {
+          row.dataset.own = el.checked;
+          // start from the main date/time so there's something to edit
+          if (el.checked && !l.date && !l.time) { l.date = state.date; l.time = state.time; renderLocs(); }
+        }
+        if (key === "city") updateAddressLabels();
         changed();
       });
     });
@@ -58,6 +77,29 @@ function renderLocs() {
     box.appendChild(row);
   });
   $("add-loc").disabled = state.locs.length >= MAX_LOCATIONS;
+  renderAddresses();
+}
+
+/* Message section: one address field per location. */
+function renderAddresses() {
+  const box = $("addresses");
+  box.innerHTML = "";
+  state.locs.forEach((l, i) => {
+    const label = $("address-template").content.firstElementChild.cloneNode(true);
+    const input = label.querySelector("input");
+    input.id = "loc-address-" + i; label.htmlFor = input.id;
+    input.value = l.address;
+    input.addEventListener("input", () => { state.locs[i].address = input.value; changed(); });
+    box.appendChild(label);
+  });
+  updateAddressLabels();
+}
+
+function updateAddressLabels() {
+  $("addresses").querySelectorAll("label").forEach((label, i) => {
+    const city = state.locs[i].city.trim();
+    label.firstChild.textContent = (city ? city + " address" : "Location " + (i + 1) + " address");
+  });
 }
 
 Object.entries(FIELDS).forEach(([id, key]) => {
@@ -66,19 +108,20 @@ Object.entries(FIELDS).forEach(([id, key]) => {
 
 $("add-loc").addEventListener("click", () => {
   if (state.locs.length >= MAX_LOCATIONS) return;
-  state.locs.push({ city: "", spot: "", type: NEW_LOCATION_TYPE, end: "" });
+  state.locs.push(newLoc({ type: NEW_LOCATION_TYPE }));
   renderLocs(); changed();
   $("loc-city-" + (state.locs.length - 1))?.focus();
 });
 
 $("reset").addEventListener("click", () => { state = presetData(); fillForm(); changed(); });
-$("form").addEventListener("submit", e => e.preventDefault());
+["flyer-form", "msg-form"].forEach(id => $(id).addEventListener("submit", e => e.preventDefault()));
 
 /* ---------- updates ---------- */
 let drawTimer = null;
 function changed() {
   saveState(state);
   updateStrip();
+  updateRouteInfo();
   updateMessage();
   updateWarn();
   clearTimeout(drawTimer);
@@ -90,7 +133,15 @@ async function render() {
   $("out").src = canvas.toDataURL("image/png");
 }
 
-function updateMessage() { $("msg").value = buildMessage(state); }
+/* The message follows the form until it's edited by hand. */
+function updateMessage() {
+  const auto = state.message === null;
+  const text = auto ? buildMessage(state) : state.message;
+  if ($("msg").value !== text) $("msg").value = text; // don't reset the cursor while typing
+  $("msg-edited").hidden = auto;
+}
+$("msg").addEventListener("input", e => { state.message = e.target.value; changed(); });
+$("msg-rebuild").addEventListener("click", () => { state.message = null; changed(); });
 
 function updateWarn() {
   const w = $("rsvp-warn"), v = (state.rsvp || "").trim();

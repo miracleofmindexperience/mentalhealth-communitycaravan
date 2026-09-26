@@ -6,65 +6,90 @@
 <title>Caravan Flyer Maker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,600&family=DM+Sans:wght@400;500;700&display=swap">
-<link rel="stylesheet" href="css/styles.css?v=1">
+<link rel="stylesheet" href="css/styles.css?v=4">
 </head>
 <body>
 <div class="wrap">
   <header class="top">
     <div class="eyebrow">World Mental Health Day · Miracle of Mind</div>
     <h1>Caravan Flyer Maker</h1>
-    <p class="lede">Fill in your city's caravan details. The flyer updates as you type. Download the image, copy the WhatsApp message, and send both together.</p>
+    <p class="lede">Fill in your city's caravan details. Make the flyer first, then check the WhatsApp message built from it. Send both together.</p>
   </header>
 
-  <div class="grid">
-    <form class="panel" id="form" autocomplete="off">
-      <div class="step">
-        <h2><span>1</span>When</h2>
-        <div class="row">
-          <label for="f-date">Date<input id="f-date"></label>
-          <label for="f-time">Time<input id="f-time"></label>
+  <!-- ============ 1. Flyer ============ -->
+  <section class="block" aria-labelledby="flyer-title">
+    <h2 class="block-title" id="flyer-title"><span>1</span>Flyer</h2>
+    <div class="grid">
+      <form class="panel" id="flyer-form" autocomplete="off">
+        <div class="step">
+          <h3>When</h3>
+          <div class="row">
+            <label for="f-date">Date<input id="f-date"></label>
+            <label for="f-time">Time<input id="f-time"></label>
+          </div>
+          <p class="hint">If locations are on different days, set each one's date under Where.</p>
         </div>
-        <label for="f-note">Note for the message (optional)<input id="f-note" placeholder="e.g. right after Satsang"></label>
-        <p class="hint">The note only goes in the WhatsApp message, not on the flyer.</p>
-      </div>
 
-      <div class="step">
-        <h2><span>2</span>Where</h2>
-        <label for="f-area">Area name<input id="f-area" placeholder="e.g. the Bay Area"></label>
-        <div id="locs" class="step"></div>
-        <button type="button" class="link-btn" id="add-loc">+ Add a location</button>
-        <p class="hint">Up to <span id="max-locs">4</span> locations. Pick "Loop" if the drive ends where it starts. Leave the finish blank if you'll share it with the route instructions.</p>
-        <label for="f-route-info">Route instructions shared<select id="f-route-info"></select></label>
-        <label for="f-strip">Text next to the date on the flyer<input id="f-strip"></label>
-        <p class="hint">Filled in automatically from your routes. Type your own, or clear it to show only the date and time.</p>
-        <button type="button" class="link-btn" id="strip-auto" hidden>Use automatic text</button>
-      </div>
+        <div class="step">
+          <h3>Where</h3>
+          <label for="f-area">Area name<input id="f-area" placeholder="e.g. the Bay Area"></label>
+          <div id="locs" class="step"></div>
+          <button type="button" class="link-btn" id="add-loc">+ Add a location</button>
+          <p class="hint">Up to <span id="max-locs">4</span> locations. Pick "Loop" if the drive ends where it starts. Leave the finish blank if you'll share it with the route instructions.</p>
+          <label for="f-route-info">Route instructions shared<select id="f-route-info"></select></label>
+          <label for="f-route-info-text" id="route-info-text-wrap" hidden>Your wording<input id="f-route-info-text" placeholder="e.g. Route instructions will be shared on a Zoom call before the event."></label>
+          <label for="f-strip">Text next to the date on the flyer<input id="f-strip"></label>
+          <p class="hint">Filled in automatically from your routes. Type your own, or clear it to show only the date and time.</p>
+          <button type="button" class="link-btn" id="strip-auto" hidden>Use automatic text</button>
+        </div>
 
-      <div class="step">
-        <h2><span>3</span>RSVP</h2>
-        <label for="f-rsvp">Google Form link<input id="f-rsvp" type="url" placeholder="https://forms.gle/…" inputmode="url"></label>
-        <p class="hint">A QR code for this link is added to the flyer automatically.</p>
-        <p class="warn" id="rsvp-warn" hidden></p>
-      </div>
-      <button type="button" class="link-btn" id="reset">Reset to the example</button>
-    </form>
+        <div class="step">
+          <h3>RSVP</h3>
+          <label for="f-rsvp">Google Form link<input id="f-rsvp" type="url" placeholder="forms.gle/…" inputmode="url"></label>
+          <p class="hint">A QR code for this link is added to the flyer automatically.</p>
+          <p class="warn" id="rsvp-warn" hidden></p>
+        </div>
+        <button type="button" class="link-btn" id="reset">Reset to the example</button>
+      </form>
 
-    <section class="preview" aria-label="Flyer preview">
-      <div class="frame"><img id="out" alt="Flyer preview"></div>
-      <div class="actions">
-        <button type="button" class="btn primary" id="dl">Download flyer (PNG)</button>
-        <span class="status" id="dl-status" role="status"></span>
-      </div>
-      <div class="frame msg">
-        <h2>WhatsApp message</h2>
-        <textarea id="msg" aria-label="WhatsApp message" readonly></textarea>
+      <section class="preview" aria-label="Flyer preview">
+        <div class="frame"><img id="out" alt="Flyer preview"></div>
         <div class="actions">
-          <button type="button" class="btn secondary" id="copy">Copy message</button>
-          <span class="status" id="copy-status" role="status"></span>
+          <button type="button" class="btn primary" id="dl">Download flyer (PNG)</button>
+          <span class="status" id="dl-status" role="status"></span>
         </div>
-      </div>
-    </section>
-  </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ============ 2. WhatsApp message ============ -->
+  <section class="block" aria-labelledby="msg-title">
+    <h2 class="block-title" id="msg-title"><span>2</span>WhatsApp message</h2>
+    <div class="grid">
+      <form class="panel" id="msg-form" autocomplete="off">
+        <p class="hint">The message is built from the flyer details above. These extras only go in the message.</p>
+        <label for="f-note">Note after the time (optional)<input id="f-note" placeholder="e.g. right after Satsang"></label>
+        <div class="step">
+          <h3>Meetup addresses (optional)</h3>
+          <div id="addresses" class="step"></div>
+          <p class="hint">A full address lets people tap it to open maps.</p>
+        </div>
+        <label for="f-materials">Materials note (optional)<input id="f-materials"></label>
+        <label for="f-contact">Contact for questions (optional)<input id="f-contact" placeholder="Name, email or phone"></label>
+      </form>
+
+      <section class="preview" aria-label="WhatsApp message">
+        <div class="frame msg">
+          <textarea id="msg" aria-label="WhatsApp message"></textarea>
+          <p class="warn" id="msg-edited" hidden>You've edited the message by hand, so it no longer updates from the form. <button type="button" class="link-btn" id="msg-rebuild">Rebuild from the form</button></p>
+          <div class="actions">
+            <button type="button" class="btn primary" id="copy">Copy message</button>
+            <span class="status" id="copy-status" role="status"></span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
 </div>
 
 <!-- One location row; cloned by js/app.js for each location. -->
@@ -75,7 +100,15 @@
     <button type="button" class="icon-btn"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
     <label class="c-spot">Start spot<input data-field="spot"></label>
     <label class="c-end">Finish spot<input data-field="end" placeholder="Blank = share later"></label>
+    <label class="c-own"><input type="checkbox" data-field="ownWhen"> Different date or time</label>
+    <label class="c-date">Date<input data-field="date"></label>
+    <label class="c-time">Time<input data-field="time"></label>
   </div>
+</template>
+
+<!-- One meetup-address field; cloned by js/app.js for each location. -->
+<template id="address-template">
+  <label>Address<input placeholder="Street, city"></label>
 </template>
 
 <canvas id="cv"></canvas>
@@ -88,15 +121,15 @@
 <script type="importmap">
 {
   "imports": {
-    "./js/config.js": "./js/config.js?v=1",
-    "./js/state.js": "./js/state.js?v=1",
-    "./js/message.js": "./js/message.js?v=1",
-    "./js/flyer.js": "./js/flyer.js?v=1",
-    "./js/lib/canvas.js": "./js/lib/canvas.js?v=1"
+    "./js/config.js": "./js/config.js?v=4",
+    "./js/state.js": "./js/state.js?v=4",
+    "./js/message.js": "./js/message.js?v=4",
+    "./js/flyer.js": "./js/flyer.js?v=4",
+    "./js/lib/canvas.js": "./js/lib/canvas.js?v=4"
   }
 }
 </script>
-<script src="vendor/qrcode.js?v=1"></script>
-<script type="module" src="js/app.js?v=1"></script>
+<script src="vendor/qrcode.js?v=4"></script>
+<script type="module" src="js/app.js?v=4"></script>
 </body>
 </html>
