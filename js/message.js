@@ -21,22 +21,29 @@ function routeLines(state, l, multi, note) {
   return lines;
 }
 
-/* Builds the WhatsApp message from the form. Blank optional fields are left out. */
+/* Builds the WhatsApp message from the form. Blank optional fields are left
+   out. Lines are grouped into blocks with one blank line between blocks:
+   intro, when and routes, practical notes, sign-off. */
 export function buildMessage(state) {
   const locs = activeLocs(state);
   const note = state.note.trim();
   const multi = hasMultipleWhens(state);
-  const lines = [T.title, T.intro];
-  if (!multi) lines.push(whenText({ date: (state.date || "").trim(), time: (state.time || "").trim() }, note));
-  lines.push(T.locationsHeader(locs.length));
-  locs.forEach(l => lines.push(...routeLines(state, l, multi, note)));
 
+  const intro = [T.title, T.intro];
+
+  const routes = [];
+  if (!multi) routes.push(whenText({ date: (state.date || "").trim(), time: (state.time || "").trim() }, note));
+  routes.push(T.locationsHeader(locs.length));
+  locs.forEach(l => routes.push(...routeLines(state, l, multi, note)));
+
+  const notes = [];
   const info = routeInfoText(state);
-  if (info) lines.push(T.routeInfoIcon + info);
-  lines.push(T.safetyLabel + T.safetyPoints.join(T.separator));
-  if (state.materials.trim()) lines.push(T.materialsIcon + state.materials.trim());
-  lines.push(T.closing);
-  lines.push(T.rsvpLabel + (rsvpUrl(state) || T.rsvpMissing));
-  if (state.contact.trim()) lines.push(T.contactLabel + state.contact.trim());
-  return lines.join("\n");
+  if (info) notes.push(T.routeInfoIcon + info);
+  notes.push(T.safetyLabel + T.safetyPoints.join(T.separator));
+  if (state.materials.trim()) notes.push(T.materialsIcon + state.materials.trim());
+
+  const signOff = [T.closing, T.rsvpLabel + (rsvpUrl(state) || T.rsvpMissing)];
+  if (state.contact.trim()) signOff.push(T.contactLabel + state.contact.trim());
+
+  return [intro, routes, notes, signOff].map(block => block.join("\n")).join("\n\n");
 }
