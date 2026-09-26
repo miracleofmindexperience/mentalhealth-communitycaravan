@@ -83,7 +83,7 @@ function updateMessage() { $("msg").value = buildMessage(state); }
 function updateWarn() {
   const w = $("rsvp-warn"), v = (state.rsvp || "").trim();
   if (!v) { w.textContent = "No form link yet. The flyer shows an empty RSVP box until you add one."; w.hidden = false; }
-  else if (!rsvpValid(state)) { w.textContent = "This doesn't look like a full link. It should start with https://"; w.hidden = false; }
+  else if (!rsvpValid(state)) { w.textContent = "This doesn't look like a link. Paste the form link, e.g. forms.gle/abc123"; w.hidden = false; }
   else w.hidden = true;
 }
 

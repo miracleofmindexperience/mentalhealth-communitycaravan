@@ -1,5 +1,5 @@
 import { MESSAGE_TEXT as T, ROUTE_INFO } from "./config.js";
-import { activeLocs, rsvpValid } from "./state.js";
+import { activeLocs, rsvpUrl } from "./state.js";
 
 function routeLine(l) {
   const city = l.city.trim(), start = l.spot.trim();
@@ -19,6 +19,6 @@ export function buildMessage(state) {
   lines.push(T.routeInfoIcon + ROUTE_INFO[state.routeInfo].text);
   lines.push(T.safety);
   lines.push(T.closing);
-  lines.push(T.rsvpLabel + (rsvpValid(state) ? state.rsvp.trim() : T.rsvpMissing));
+  lines.push(T.rsvpLabel + (rsvpUrl(state) || T.rsvpMissing));
   return lines.join("\n");
 }

@@ -6,7 +6,7 @@
  * removed without touching the others. Text comes from config.js.
  */
 import { COLORS as C, FONTS, FLYER_TEXT as T, MOM_URL, LOGO_SRC, ROUTE_INFO } from "./config.js";
-import { activeLocs, allLoops, rsvpValid } from "./state.js";
+import { activeLocs, allLoops, rsvpValid, rsvpUrl } from "./state.js";
 import { roundRect, spacedWidth, spacedText, wrapText, fitFont, drawQR } from "./lib/canvas.js";
 
 const SERIF = FONTS.serif, SANS = FONTS.sans;
@@ -318,7 +318,7 @@ function drawClosing(ctx, state, y) {
   const qx = L.width - M - size;
   ctx.fillStyle = C.white; roundRect(ctx, qx, y, size, size, 10); ctx.fill();
   if (valid) {
-    drawQR(ctx, state.rsvp.trim(), qx + 7, y + 7, size - 14);
+    drawQR(ctx, rsvpUrl(state), qx + 7, y + 7, size - 14);
   } else {
     ctx.font = "700 13px " + SANS; ctx.fillStyle = C.muted; ctx.textAlign = "center";
     T.rsvpEmpty.forEach((line, i) => ctx.fillText(line, qx + size / 2, y + 44 + i * 18));

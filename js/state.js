@@ -47,6 +47,16 @@ export function allLoops(locs) {
   return locs.length > 0 && locs.every(l => l.type === "loop");
 }
 
+/* The RSVP link as a full URL, or "" if it doesn't look like a link.
+   "https://" is added when missing, so "forms.gle/abc" works too. */
+export function rsvpUrl(state) {
+  let v = (state.rsvp || "").trim();
+  if (!v) return "";
+  if (!/^https?:\/\//i.test(v)) v = "https://" + v.replace(/^\/+/, "");
+  // host with a dot and a letter TLD (e.g. forms.gle), then an optional path
+  return /^https?:\/\/[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}(:\d+)?([\/?#]\S*)?$/i.test(v) ? v : "";
+}
+
 export function rsvpValid(state) {
-  return /^https?:\/\/\S+\.\S+/i.test((state.rsvp || "").trim());
+  return rsvpUrl(state) !== "";
 }
