@@ -100,6 +100,12 @@ function compactDates(dates) {
   return dates.join(" · ");
 }
 
+/* True when route instructions and the (unchanged) materials note both happen
+   at the meetup point, so the flyer and message say them in one line. */
+export function meetupWithMaterials(state) {
+  return state.routeInfo === "meetup" && state.materials.trim() === DEFAULT_MATERIALS;
+}
+
 /* The "route instructions will be shared…" sentence ("" if left blank). */
 export function routeInfoText(state) {
   const opt = ROUTE_INFO[state.routeInfo];

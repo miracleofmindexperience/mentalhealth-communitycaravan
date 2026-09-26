@@ -1,5 +1,5 @@
-import { MESSAGE_TEXT as T, DEFAULT_MATERIALS } from "./config.js";
-import { activeLocs, rsvpUrl, locWhen, hasMultipleWhens, routeInfoText } from "./state.js";
+import { MESSAGE_TEXT as T } from "./config.js";
+import { activeLocs, rsvpUrl, locWhen, hasMultipleWhens, routeInfoText, meetupWithMaterials } from "./state.js";
 
 const INDENT = "   ";
 
@@ -38,7 +38,7 @@ export function buildMessage(state) {
 
   const notes = [T.safetyLabel + T.safetyPoints.join(T.separator)];
   const info = routeInfoText(state), materials = state.materials.trim();
-  if (state.routeInfo === "meetup" && materials === DEFAULT_MATERIALS) {
+  if (meetupWithMaterials(state)) {
     notes.push(T.meetupAndMaterials); // both happen at the meetup point: one line
   } else {
     if (info) notes.push(T.routeInfoIcon + info);

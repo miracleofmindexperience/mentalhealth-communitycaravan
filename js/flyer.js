@@ -6,7 +6,7 @@
  * removed without touching the others. Text comes from config.js.
  */
 import { COLORS as C, FONTS, FLYER_TEXT as T, MOM_URL, LOGO_SRC } from "./config.js";
-import { activeLocs, allLoops, rsvpValid, rsvpUrl, stripText, stripWhen, locWhen, hasMultipleWhens, routeInfoText } from "./state.js";
+import { activeLocs, allLoops, rsvpValid, rsvpUrl, stripText, stripWhen, locWhen, hasMultipleWhens, routeInfoText, meetupWithMaterials } from "./state.js";
 import { roundRect, spacedWidth, spacedText, wrapText, fitFont, drawQR } from "./lib/canvas.js";
 
 const SERIF = FONTS.serif, SANS = FONTS.sans;
@@ -442,7 +442,7 @@ export async function drawFlyer(canvas, state) {
   // When locations are on different dates, each route shows its own date and time.
   const whens = hasMultipleWhens(state) ? locs.map(l => locWhen(state, l)) : null;
   const routes = loopsOnly ? layoutCards(ctx, locs, CW, whens) : layoutRoutes(ctx, locs, CW, whens);
-  const info = routeInfoText(state); // "" = no route-instructions line
+  const info = meetupWithMaterials(state) ? T.meetupAndMaterials : routeInfoText(state); // "" = no line
 
   // vertical positions of each section
   const yIntro = L.bandHeight + 16;

@@ -52,6 +52,8 @@ export const FLYER_TEXT = {
   finishLater: "Shared with route instructions",
   cityPlaceholder: "City",
   spotPlaceholder: "Meeting spot",
+  /* Route-instructions line when materials are also handed out at the meetup point. */
+  meetupAndMaterials: "Route instructions and caravan materials will be provided at the meetup point.",
   safety: "Safety first: follow all traffic laws, drive at the pace of traffic, and no honking or sudden stops.",
   closingHeadline: "Open to all. Everyone’s welcome!",
   closingSub: "Bring your family, your friends and your car.",
