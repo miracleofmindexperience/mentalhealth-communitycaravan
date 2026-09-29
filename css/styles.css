@@ -71,3 +71,4 @@ canvas{display:none}
 .msg .warn .link-btn{padding:4px 10px}
 .frame-title{margin:0;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .frame #banner-out{display:block;width:100%;height:auto;border-radius:8px}
+[hidden]{display:none!important}
