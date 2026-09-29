@@ -136,9 +136,10 @@ export const PRESETS = {
       routeInfo: "meetup",
       contact: "",
       locs: [
-        { city: "Cumming", spot: "Midway Park Community Building", type: "loop" },
+        { city: "Cumming", spot: "Sawnee Mountain Park", type: "loop" },
         { city: "Atlanta", spot: "Sheraton Atlanta Perimeter North", type: "loop" },
-        { city: "Duluth", spot: "W.P. Jones Memorial Park", type: "loop" }
+        { city: "Duluth", spot: "W.P. Jones Memorial Park", type: "loop" },
+        { city: "Marietta", spot: "Jim R. Miller Park", type: "loop" }
       ]
     }
   }
