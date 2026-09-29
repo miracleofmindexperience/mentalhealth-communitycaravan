@@ -45,10 +45,9 @@ const CARS = [
 
 /* ---------- setup ---------- */
 const logo = new Image();
+// onload (not decode(), which pauses while the page is in a background tab)
+const logoReady = new Promise(r => { logo.onload = r; logo.onerror = r; });
 logo.src = LOGO_SRC;
-const logoReady = logo.decode
-  ? logo.decode().catch(() => {})
-  : new Promise(r => { logo.onload = r; logo.onerror = r; });
 
 /* ---------- sections ---------- */
 function drawHeader(ctx) {
@@ -56,18 +55,23 @@ function drawHeader(ctx) {
   ctx.fillStyle = C.forest;
   ctx.fillRect(0, 0, W, L.bandHeight);
 
-  // badge pill
-  ctx.font = "700 20px " + SANS;
-  const pw = spacedWidth(ctx, T.badge, 3) + 36;
-  ctx.fillStyle = C.accent; roundRect(ctx, M, 36, pw, 40, 20); ctx.fill();
-  ctx.fillStyle = C.white; ctx.textBaseline = "middle";
-  spacedText(ctx, T.badge, M + 18, 57, 3);
-  ctx.textBaseline = "alphabetic";
+  // badge pill (optional)
+  if (T.badge) {
+    const bs = T.badgeSize, sp = bs * 0.15, h = bs * 2, padX = bs * 0.9;
+    ctx.font = "700 " + bs + "px " + SANS;
+    const pw = spacedWidth(ctx, T.badge, sp) + padX * 2;
+    ctx.fillStyle = C.accent; roundRect(ctx, M, 36, pw, h, h / 2); ctx.fill();
+    ctx.fillStyle = C.white; ctx.textBaseline = "middle";
+    spacedText(ctx, T.badge, M + padX, 36 + h / 2 + 1, sp);
+    ctx.textBaseline = "alphabetic";
+  }
 
-  // title
-  ctx.font = "700 84px " + SERIF;
-  ctx.fillStyle = C.white; ctx.fillText(T.titleLine1, M - 2, 158);
-  ctx.fillStyle = C.gold; ctx.fillText(T.titleLine2, M - 2, 240);
+  // title lines (shrunk if one is too wide for the space left of the app card)
+  const maxW = W - M - 364 - M - 24;
+  T.titleLines.forEach(l => {
+    fitFont(ctx, l.text, "700", l.size, SERIF, maxW, 40);
+    ctx.fillStyle = C[l.color]; ctx.fillText(l.text, M - 2, l.y);
+  });
 
   // app card: logo + QR to the app
   const cx = W - M - 364, cy = 28;
@@ -496,21 +500,30 @@ export async function drawBanner(canvas) {
 
   // title band
   ctx.fillStyle = C.forest; ctx.fillRect(0, 0, W, bandH);
-  ctx.font = "700 18px " + SANS;
-  const pw = spacedWidth(ctx, T.badge, 3) + 32;
-  ctx.fillStyle = C.accent; roundRect(ctx, M, 26, pw, 34, 17); ctx.fill();
-  ctx.fillStyle = C.white; ctx.textBaseline = "middle";
-  spacedText(ctx, T.badge, M + 16, 44, 3);
-  ctx.textBaseline = "alphabetic";
-  ctx.font = "700 72px " + SERIF;
-  ctx.fillStyle = C.white; ctx.fillText(T.titleLine1 + " ", M - 2, 128);
-  const w1 = ctx.measureText(T.titleLine1 + " ").width;
-  ctx.fillStyle = C.gold; ctx.fillText(T.titleLine2, M - 2 + w1, 128);
+  const tile = bandH - 40;
+  if (T.badge) {
+    ctx.font = "700 18px " + SANS;
+    const pw = spacedWidth(ctx, T.badge, 3) + 32;
+    ctx.fillStyle = C.accent; roundRect(ctx, M, 26, pw, 34, 17); ctx.fill();
+    ctx.fillStyle = C.white; ctx.textBaseline = "middle";
+    spacedText(ctx, T.badge, M + 16, 44, 3);
+    ctx.textBaseline = "alphabetic";
+  }
+  // the title lines on one line, each in its own color, shrunk to fit
+  const titleY = T.badge ? 128 : 112, maxW = W - M - tile - M - 40;
+  const words = T.titleLines.map(l => l.text);
+  let size = 72;
+  const width = () => { ctx.font = "700 " + size + "px " + SERIF; return ctx.measureText(words.join(" ")).width; };
+  while (width() > maxW && size > 36) size--;
+  let x = M - 2;
+  T.titleLines.forEach((l, i) => {
+    const t = (i ? " " : "") + l.text;
+    ctx.fillStyle = C[l.color]; ctx.fillText(t, x, titleY); x += ctx.measureText(t).width;
+  });
   ctx.font = "italic 600 30px " + SERIF; ctx.fillStyle = C.cream;
-  ctx.fillText(T.tagline, M, 170);
+  ctx.fillText(T.tagline, M, titleY + 44);
 
   // Miracle of Mind logo tile, top right
-  const tile = bandH - 40;
   ctx.fillStyle = C.logoTile; roundRect(ctx, W - M - tile, 20, tile, tile, 16); ctx.fill();
   drawContained(ctx, logo, W - M - tile + 12, 32, tile - 24, tile - 24);
 }

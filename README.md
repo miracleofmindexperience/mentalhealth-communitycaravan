@@ -1,6 +1,6 @@
 # Caravan Flyer Maker
 
-A small web page for the **World Mental Health Day Community Caravan** (Miracle of Mind). City coordinators fill in their caravan details in two sections: **1. Flyer** builds a shareable flyer image (with RSVP QR code), and **2. WhatsApp message** builds a matching message from the flyer details plus message-only extras (addresses, materials note, contact). The message can also be edited by hand.
+A small web page for the **World Mental Health Day Caravan** (Miracle of Mind). City coordinators fill in their caravan details in two sections: **1. Flyer** builds a shareable flyer image (with RSVP QR code), and **2. WhatsApp message** builds a matching message from the flyer details plus message-only extras (addresses, materials note, contact). The message can also be edited by hand.
 
 Plain HTML/CSS/JS. No framework, no build step.
 
@@ -24,7 +24,7 @@ Settings → Pages → Deploy from branch → `main` / root. The `.nojekyll` fil
 
 | I want to change… | Edit |
 |---|---|
-| Any text on the flyer (badge, title, tagline, caravan description, safety line, RSVP labels…) | `js/config.js` → `FLYER_TEXT` |
+| Any text on the flyer (title lines, optional badge, tagline, caravan description, safety line, RSVP labels…) | `js/config.js` → `FLYER_TEXT` |
 | "Route instructions will be shared…" choices | `js/config.js` → `ROUTE_INFO` |
 | Route types (Start → finish / Loop) and the default for new locations | `js/config.js` → `ROUTE_TYPES`, `NEW_LOCATION_TYPE` |
 | The WhatsApp message wording (incl. safety guidelines) | `js/config.js` → `MESSAGE_TEXT` |

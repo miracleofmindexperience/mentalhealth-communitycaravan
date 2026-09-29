@@ -39,9 +39,15 @@ export const FONTS = {
 
 /* Every piece of text printed on the flyer image. */
 export const FLYER_TEXT = {
-  badge: "WORLD MENTAL HEALTH DAY",
-  titleLine1: "Community",
-  titleLine2: "Caravan",
+  /* Title in the green band: an optional orange badge ("" = none) and the
+     title lines (size in px, y = baseline, color: "white" or "gold"). */
+  badge: "",
+  badgeSize: 20,           // badge text size in px (the pill grows with it)
+  titleLines: [
+    { text: "World Mental", size: 66, y: 104, color: "white" },
+    { text: "Health Day", size: 66, y: 176, color: "white" },
+    { text: "Caravan", size: 88, y: 258, color: "gold" }
+  ],
   appCaption: "Free 7-min meditation app · Scan",
   tagline: "Let’s drive the conversation.",
   description: "Join us for a silent group drive in our own cars to raise awareness about mental well-being and share Miracle of Mind, a free app. No honking, no speeches. Just quiet, visible support.",
@@ -71,7 +77,7 @@ export const FLYER_TEXT = {
 
 /* The WhatsApp message. Lines with *stars* render bold in WhatsApp. */
 export const MESSAGE_TEXT = {
-  title: "🚗 *Community Caravan for World Mental Health Day*",
+  title: "🚗 *World Mental Health Day Caravan*",
   intro: "Join us for a silent group drive in our own cars, raising awareness about mental well-being and sharing *Miracle of Mind*, a free 7-minute meditation app. No honking, no speeches. Just quiet, visible support.",
   locationsHeader: n => n > 1 ? "📍 *Routes:*" : "📍 *Route:*",
   loopSuffix: " (loop, back to start)",
