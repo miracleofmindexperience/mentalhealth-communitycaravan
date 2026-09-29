@@ -132,7 +132,7 @@ export const PRESETS = {
       time: "12 to 1 PM",
       note: "right after Satsang",
       area: "metro Atlanta",
-      rsvp: "https://forms.gle/vi2XTFjrhS3JViBd7",
+      rsvp: "https://forms.gle/MaXY43U9rMwD1NfK7",
       routeInfo: "meetup",
       contact: "",
       locs: [
