@@ -1,5 +1,5 @@
 import { MESSAGE_TEXT as T } from "./config.js";
-import { activeLocs, rsvpUrl, locWhen, hasMultipleWhens, routeInfoText, meetupWithMaterials } from "./state.js";
+import { activeLocs, allLoops, rsvpUrl, locWhen, hasMultipleWhens, routeInfoText, meetupWithMaterials } from "./state.js";
 
 const INDENT = "   ";
 
@@ -10,10 +10,10 @@ function whenText(w, note) {
 
 /* One route: "• *City:* start → finish", then its own date (when locations
    differ) and its address on indented lines. */
-function routeLines(state, l, multi, note) {
+function routeLines(state, l, multi, note, loopsInHeader) {
   const city = l.city.trim(), start = l.spot.trim();
   const route = l.type === "loop"
-    ? start + T.loopSuffix
+    ? start + (loopsInHeader ? "" : T.loopSuffix)
     : start + " → " + (l.end.trim() || T.finishLater);
   const lines = ["• " + (city ? "*" + city + ":* " : "") + route.trim()];
   if (multi) lines.push(INDENT + whenText(locWhen(state, l), note));
@@ -33,8 +33,9 @@ export function buildMessage(state) {
 
   const routes = [];
   if (!multi) routes.push(whenText({ date: (state.date || "").trim(), time: (state.time || "").trim() }, note));
-  routes.push(T.locationsHeader(locs.length));
-  locs.forEach(l => routes.push(...routeLines(state, l, multi, note)));
+  const loops = allLoops(locs); // every route is a loop: say it once in the header
+  routes.push(T.locationsHeader(locs.length, loops));
+  locs.forEach(l => routes.push(...routeLines(state, l, multi, note, loops)));
 
   const notes = [T.safetyLabel + T.safetyPoints.join(T.separator)];
   const info = routeInfoText(state), materials = state.materials.trim();

@@ -60,7 +60,7 @@ export const FLYER_TEXT = {
   spotPlaceholder: "Meeting spot",
   /* Route-instructions line when materials are also handed out at the meetup point. */
   meetupAndMaterials: "Route instructions and caravan materials will be provided at the meetup point.",
-  safety: "Safety first: follow all traffic laws, drive at the pace of traffic, and no honking or sudden stops.",
+  safety: "Safety first: follow all traffic rules, drive at the pace of traffic, and no honking or sudden stops.",
   closingHeadline: "Open to all. Everyone’s welcome!",
   closingSub: "Bring your family, your friends and your car.",
   rsvpTitle: "RSVP",
@@ -78,30 +78,33 @@ export const FLYER_TEXT = {
 /* The WhatsApp message. Lines with *stars* render bold in WhatsApp. */
 export const MESSAGE_TEXT = {
   title: "🚗 *World Mental Health Day Caravan*",
-  intro: "Join us for a silent group drive in our own cars, raising awareness about mental well-being and sharing *Miracle of Mind*, a free 7-minute meditation app. No honking, no speeches. Just quiet, visible support.",
-  locationsHeader: n => n > 1 ? "📍 *Routes:*" : "📍 *Route:*",
+  intro: "Join us for a silent group drive in our own cars to raise awareness about mental well-being & share *Miracle of Mind*, a free 7-minute meditation app. No honking, no speeches. Just quiet, visible support. 🧘",
+  /* When every route is a loop, the header says so once and the lines skip loopSuffix. */
+  locationsHeader: (n, allLoops) => "📍 *" + (n > 1 ? "Routes" : "Route") + (allLoops ? " (Loop, back to start)" : "") + ":*",
   loopSuffix: " (loop, back to start)",
   finishLater: "finish shared with route instructions",
   routeInfoIcon: "🧭 ",
   /* Safety points are joined on one line with the separator. */
   safetyLabel: "⚠️ *Safety guidelines:* ",
   safetyPoints: [
-    "Follow all rules of the road.",
+    "Follow all traffic rules.",
     "Drive at the pace of traffic, no honking or sudden stops."
   ],
   separator: " ",
   materialsIcon: "🚩 ",
   /* Replaces the route-instructions and materials lines when instructions are
      shared at the meetup point and the materials note hasn't been changed. */
-  meetupAndMaterials: "🚩 Route instructions and caravan materials such as magnets, stickers or flags will be provided at the meetup point.",
-  closing: "🙏 Open to all. Bring family & friends!",
+  meetupAndMaterials: "🚩 Route instructions and caravan materials such as magnets and flags will be provided at the meetup point.",
+  closing: "🙏 *Open to all. Bring family & friends!*",
   rsvpLabel: "✅ RSVP: ",
   rsvpMissing: "[GOOGLE FORM LINK]",
   contactLabel: "📩 Questions? Contact "
 };
 
 /* Starting text for the message's materials note. Coordinators can edit or clear it. */
-export const DEFAULT_MATERIALS = "Caravan materials such as magnets, stickers or flags will be provided.";
+export const DEFAULT_MATERIALS = "Caravan materials such as magnets and flags will be provided.";
+/* Earlier default wordings: drafts still holding one are moved to the current default. */
+export const OLD_DEFAULT_MATERIALS = ["Caravan materials such as magnets, stickers or flags will be provided."];
 
 /* "When are route instructions shared?" choices. `text` is printed on the
    flyer and in the message. */
@@ -139,7 +142,7 @@ export const PRESETS = {
         { city: "Cumming", spot: "Midway Park Community Building", type: "loop" },
         { city: "Atlanta", spot: "Sheraton Atlanta Perimeter North", type: "loop" },
         { city: "Duluth", spot: "W.P. Jones Memorial Park", type: "loop" },
-        { city: "Marietta", spot: "Jim R. Miller Park", type: "loop" }
+        { city: "Marietta", spot: "Jim R. Miller Park & Event Center", type: "loop" }
       ]
     }
   }

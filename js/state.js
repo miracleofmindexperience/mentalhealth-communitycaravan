@@ -1,4 +1,4 @@
-import { STORAGE_KEY, PRESETS, DEFAULT_PRESET, ROUTE_INFO, DEFAULT_ROUTE_INFO, ROUTE_TYPES, FLYER_TEXT, DEFAULT_MATERIALS } from "./config.js";
+import { STORAGE_KEY, PRESETS, DEFAULT_PRESET, ROUTE_INFO, DEFAULT_ROUTE_INFO, ROUTE_TYPES, FLYER_TEXT, DEFAULT_MATERIALS, OLD_DEFAULT_MATERIALS } from "./config.js";
 
 /* Which preset the page is using: ?preset=<key> if valid, else the default. */
 export function activePresetKey() {
@@ -19,7 +19,7 @@ function normalize(s) {
   s.routeInfoText = str(s.routeInfoText);
   s.note = str(s.note);
   s.contact = str(s.contact);
-  if (typeof s.materials !== "string") s.materials = DEFAULT_MATERIALS;
+  if (typeof s.materials !== "string" || OLD_DEFAULT_MATERIALS.includes(s.materials.trim())) s.materials = DEFAULT_MATERIALS;
   if (typeof s.strip !== "string") s.strip = null;     // null = automatic text
   if (typeof s.message !== "string") s.message = null; // null = built from the form
   return s;
