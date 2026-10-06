@@ -21,6 +21,7 @@ function normalize(s) {
   s.contact = str(s.contact);
   if (!RSVP_TYPES[s.rsvpType]) s.rsvpType = DEFAULT_RSVP_TYPE; // drafts from before phone RSVP used a form
   s.rsvpPhone = str(s.rsvpPhone);
+  s.rsvpEmail = str(s.rsvpEmail);
   if (typeof s.materials !== "string" || OLD_DEFAULT_MATERIALS.includes(s.materials.trim())) s.materials = DEFAULT_MATERIALS;
   if (typeof s.strip !== "string") s.strip = null;     // null = automatic text
   if (typeof s.message !== "string") s.message = null; // null = built from the form
@@ -149,4 +150,13 @@ export function rsvpPhone(state) {
 export function rsvpPhoneValid(state) {
   const digits = rsvpPhone(state).replace(/\D/g, "").length;
   return digits >= 10 && digits <= 15;
+}
+
+/* The RSVP email address as typed ("" if blank). */
+export function rsvpEmail(state) {
+  return (state.rsvpEmail || "").trim();
+}
+
+export function rsvpEmailValid(state) {
+  return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(rsvpEmail(state));
 }

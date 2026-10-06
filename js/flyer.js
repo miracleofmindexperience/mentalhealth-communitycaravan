@@ -6,7 +6,7 @@
  * removed without touching the others. Text comes from config.js.
  */
 import { COLORS as C, FONTS, FLYER_TEXT as T, MOM_URL, LOGO_SRC } from "./config.js";
-import { activeLocs, allLoops, rsvpValid, rsvpUrl, rsvpPhone, rsvpPhoneValid, stripText, stripWhen, locWhen, hasMultipleWhens, routeInfoText, meetupWithMaterials } from "./state.js";
+import { activeLocs, allLoops, rsvpValid, rsvpUrl, rsvpPhone, rsvpPhoneValid, rsvpEmail, rsvpEmailValid, stripText, stripWhen, locWhen, hasMultipleWhens, routeInfoText, meetupWithMaterials } from "./state.js";
 import { roundRect, spacedWidth, spacedText, wrapText, fitFont, drawQR } from "./lib/canvas.js";
 
 const SERIF = FONTS.serif, SANS = FONTS.sans;
@@ -413,10 +413,13 @@ function drawSafety(ctx, y) {
 }
 
 /* "Open to all" text on the left, RSVP label + a box on the right: the form's
-   QR code, or the phone number to call or text. */
+   QR code, or the phone number or email address. */
 function drawClosing(ctx, state, y) {
-  const M = L.margin, size = L.closingHeight, phone = state.rsvpType === "phone";
-  const valid = phone ? rsvpPhoneValid(state) : rsvpValid(state);
+  const M = L.margin, size = L.closingHeight, type = state.rsvpType;
+  const phone = type === "phone" || type === "email"; // a box with text instead of a QR code
+  const valid = type === "phone" ? rsvpPhoneValid(state) : type === "email" ? rsvpEmailValid(state) : rsvpValid(state);
+  const contact = type === "email" ? rsvpEmail(state) : rsvpPhone(state);
+  const empty = type === "email" ? T.rsvpEmailEmpty : T.rsvpPhoneEmpty;
   ctx.textBaseline = "middle"; ctx.textAlign = "left";
   ctx.font = "700 26px " + SANS; ctx.fillStyle = C.navy; ctx.fillText(T.closingHeadline, M, y + 36);
   ctx.font = "400 22px " + SANS; ctx.fillStyle = C.body; ctx.fillText(T.closingSub, M, y + 70);
@@ -424,7 +427,7 @@ function drawClosing(ctx, state, y) {
   // the box: square for a QR code, as wide as the number for a phone
   let w = size, numSize = 32;
   if (phone) {
-    const text = valid ? rsvpPhone(state) : T.rsvpPhoneEmpty;
+    const text = valid ? contact : empty;
     // long entries (e.g. with a name) shrink so they don't reach the text on the left
     do { ctx.font = "700 " + (valid ? numSize : 15) + "px " + SANS; } while (valid && ctx.measureText(text).width > 290 && --numSize > 18);
     w = Math.max(size, Math.ceil(ctx.measureText(text).width) + 48);
@@ -434,7 +437,7 @@ function drawClosing(ctx, state, y) {
   ctx.textAlign = "center";
   if (phone) {
     ctx.fillStyle = valid ? C.navy : C.muted;
-    ctx.fillText(valid ? rsvpPhone(state) : T.rsvpPhoneEmpty, qx + w / 2, y + size / 2 + 1);
+    ctx.fillText(valid ? contact : empty, qx + w / 2, y + size / 2 + 1);
   } else if (valid) {
     drawQR(ctx, rsvpUrl(state), qx + 7, y + 7, size - 14);
   } else {
@@ -447,7 +450,7 @@ function drawClosing(ctx, state, y) {
 
   ctx.textAlign = "right";
   ctx.font = "700 36px " + SERIF; ctx.fillStyle = C.accent; ctx.fillText(T.rsvpTitle, qx - 16, y + 40);
-  ctx.font = "400 17px " + SANS; ctx.fillStyle = C.body; ctx.fillText(phone ? T.rsvpPhoneSub : T.rsvpSub, qx - 16, y + 72);
+  ctx.font = "400 17px " + SANS; ctx.fillStyle = C.body; ctx.fillText(type === "email" ? T.rsvpEmailSub : phone ? T.rsvpPhoneSub : T.rsvpSub, qx - 16, y + 72);
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
 }
 

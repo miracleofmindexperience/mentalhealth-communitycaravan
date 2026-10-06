@@ -1,7 +1,7 @@
 /* Wires the two sections together: the flyer form and preview, then the
    WhatsApp message (built from the flyer inputs plus message-only fields). */
 import { MAX_LOCATIONS, PRESETS, FONTS, DOWNLOAD_PREFIX, ROUTE_INFO, ROUTE_TYPES, NEW_LOCATION_TYPE, RSVP_TYPES } from "./config.js";
-import { loadState, saveState, presetData, activePresetKey, activeLocs, rsvpValid, rsvpPhone, rsvpPhoneValid, autoStripText, newLoc } from "./state.js";
+import { loadState, saveState, presetData, activePresetKey, activeLocs, rsvpValid, rsvpPhone, rsvpPhoneValid, rsvpEmail, rsvpEmailValid, autoStripText, newLoc } from "./state.js";
 import { buildMessage } from "./message.js";
 import { drawFlyer, drawBanner } from "./flyer.js";
 
@@ -13,7 +13,7 @@ let state = loadState();
 const FIELDS = {
   // flyer
   "f-date": "date", "f-time": "time", "f-area": "area",
-  "f-rsvp-type": "rsvpType", "f-rsvp": "rsvp", "f-rsvp-phone": "rsvpPhone",
+  "f-rsvp-type": "rsvpType", "f-rsvp": "rsvp", "f-rsvp-phone": "rsvpPhone", "f-rsvp-email": "rsvpEmail",
   "f-route-info": "routeInfo", "f-route-info-text": "routeInfoText",
   // message only
   "f-note": "note", "f-materials": "materials", "f-contact": "contact"
@@ -33,12 +33,13 @@ function fillForm() {
   updateRsvpType();
 }
 
-/* Shows the form-link or phone field, and the form header only for a form. */
+/* Shows the field for the chosen RSVP type, and the form header only for a form. */
 function updateRsvpType() {
-  const phone = state.rsvpType === "phone";
-  $("rsvp-form-wrap").hidden = phone;
-  $("rsvp-phone-wrap").hidden = !phone;
-  $("banner-frame").hidden = phone;
+  const t = state.rsvpType;
+  $("rsvp-form-wrap").hidden = t !== "form";
+  $("rsvp-phone-wrap").hidden = t !== "phone";
+  $("rsvp-email-wrap").hidden = t !== "email";
+  $("banner-frame").hidden = t !== "form";
 }
 
 function updateRouteInfo() {
@@ -159,6 +160,12 @@ function updateWarn() {
   if (state.rsvpType === "phone") {
     if (!rsvpPhone(state)) { w.textContent = "No phone number yet. The flyer shows an empty RSVP box until you add one."; w.hidden = false; }
     else if (!rsvpPhoneValid(state)) { w.textContent = "This doesn't look like a phone number. Include the area code, e.g. 404-555-0123"; w.hidden = false; }
+    else w.hidden = true;
+    return;
+  }
+  if (state.rsvpType === "email") {
+    if (!rsvpEmail(state)) { w.textContent = "No email address yet. The flyer shows an empty RSVP box until you add one."; w.hidden = false; }
+    else if (!rsvpEmailValid(state)) { w.textContent = "This doesn't look like an email address, e.g. name@example.org"; w.hidden = false; }
     else w.hidden = true;
     return;
   }
