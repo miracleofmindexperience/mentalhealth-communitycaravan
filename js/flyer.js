@@ -425,19 +425,28 @@ function drawClosing(ctx, state, y) {
   ctx.font = "400 22px " + SANS; ctx.fillStyle = C.body; ctx.fillText(T.closingSub, M, y + 70);
 
   // the box: square for a QR code, as wide as the number for a phone
-  let w = size, numSize = 32;
+  let w = size, lines = [], px = 0;
   if (phone) {
-    const text = valid ? contact : empty;
+    const widest = () => Math.max(...lines.map(l => ctx.measureText(l).width));
     // long entries (e.g. with a name) shrink so they don't reach the text on the left
-    do { ctx.font = "700 " + (valid ? numSize : 15) + "px " + SANS; } while (valid && ctx.measureText(text).width > 290 && --numSize > 18);
-    w = Math.max(size, Math.ceil(ctx.measureText(text).width) + 48);
+    const fit = min => { do { ctx.font = "700 " + px + "px " + SANS; } while (valid && widest() > 290 && --px > min); };
+    lines = [valid ? contact : empty];
+    px = valid ? 32 : 15; fit(type === "email" ? 24 : 18);
+    // a long email address goes on two lines, broken after the @
+    if (valid && type === "email" && widest() > 290) {
+      const at = contact.indexOf("@") + 1;
+      lines = [contact.slice(0, at), contact.slice(at)];
+      px = 28; fit(16);
+    }
+    w = Math.max(size, Math.ceil(widest()) + 48);
   }
   const qx = L.width - M - w;
   ctx.fillStyle = C.white; roundRect(ctx, qx, y, w, size, 10); ctx.fill();
   ctx.textAlign = "center";
   if (phone) {
     ctx.fillStyle = valid ? C.navy : C.muted;
-    ctx.fillText(valid ? contact : empty, qx + w / 2, y + size / 2 + 1);
+    const lh = px * 1.2, top = y + size / 2 + 1 - (lines.length - 1) * lh / 2;
+    lines.forEach((l, i) => ctx.fillText(l, qx + w / 2, top + i * lh));
   } else if (valid) {
     drawQR(ctx, rsvpUrl(state), qx + 7, y + 7, size - 14);
   } else {
