@@ -6,7 +6,7 @@
  * removed without touching the others. Text comes from config.js.
  */
 import { COLORS as C, FONTS, FLYER_TEXT as T, MOM_URL, LOGO_SRC } from "./config.js";
-import { activeLocs, allLoops, rsvpValid, rsvpUrl, stripText, stripWhen, locWhen, hasMultipleWhens, routeInfoText, meetupWithMaterials } from "./state.js";
+import { activeLocs, allLoops, rsvpValid, rsvpUrl, rsvpPhone, rsvpPhoneValid, stripText, stripWhen, locWhen, hasMultipleWhens, routeInfoText, meetupWithMaterials } from "./state.js";
 import { roundRect, spacedWidth, spacedText, wrapText, fitFont, drawQR } from "./lib/canvas.js";
 
 const SERIF = FONTS.serif, SANS = FONTS.sans;
@@ -412,29 +412,42 @@ function drawSafety(ctx, y) {
   ctx.textBaseline = "alphabetic";
 }
 
-/* "Open to all" text on the left, RSVP label + QR on the right. */
+/* "Open to all" text on the left, RSVP label + a box on the right: the form's
+   QR code, or the phone number to call or text. */
 function drawClosing(ctx, state, y) {
-  const M = L.margin, size = L.closingHeight, valid = rsvpValid(state);
+  const M = L.margin, size = L.closingHeight, phone = state.rsvpType === "phone";
+  const valid = phone ? rsvpPhoneValid(state) : rsvpValid(state);
   ctx.textBaseline = "middle"; ctx.textAlign = "left";
   ctx.font = "700 26px " + SANS; ctx.fillStyle = C.navy; ctx.fillText(T.closingHeadline, M, y + 36);
   ctx.font = "400 22px " + SANS; ctx.fillStyle = C.body; ctx.fillText(T.closingSub, M, y + 70);
 
-  const qx = L.width - M - size;
-  ctx.fillStyle = C.white; roundRect(ctx, qx, y, size, size, 10); ctx.fill();
-  if (valid) {
+  // the box: square for a QR code, as wide as the number for a phone
+  let w = size, numSize = 32;
+  if (phone) {
+    const text = valid ? rsvpPhone(state) : T.rsvpPhoneEmpty;
+    // long entries (e.g. with a name) shrink so they don't reach the text on the left
+    do { ctx.font = "700 " + (valid ? numSize : 15) + "px " + SANS; } while (valid && ctx.measureText(text).width > 290 && --numSize > 18);
+    w = Math.max(size, Math.ceil(ctx.measureText(text).width) + 48);
+  }
+  const qx = L.width - M - w;
+  ctx.fillStyle = C.white; roundRect(ctx, qx, y, w, size, 10); ctx.fill();
+  ctx.textAlign = "center";
+  if (phone) {
+    ctx.fillStyle = valid ? C.navy : C.muted;
+    ctx.fillText(valid ? rsvpPhone(state) : T.rsvpPhoneEmpty, qx + w / 2, y + size / 2 + 1);
+  } else if (valid) {
     drawQR(ctx, rsvpUrl(state), qx + 7, y + 7, size - 14);
   } else {
-    ctx.font = "700 13px " + SANS; ctx.fillStyle = C.muted; ctx.textAlign = "center";
+    ctx.font = "700 13px " + SANS; ctx.fillStyle = C.muted;
     T.rsvpEmpty.forEach((line, i) => ctx.fillText(line, qx + size / 2, y + 44 + i * 18));
-    ctx.textAlign = "left";
   }
   ctx.strokeStyle = C.accent; ctx.lineWidth = 3;
   if (!valid) ctx.setLineDash([8, 6]);
-  roundRect(ctx, qx + 1.5, y + 1.5, size - 3, size - 3, 9); ctx.stroke(); ctx.setLineDash([]);
+  roundRect(ctx, qx + 1.5, y + 1.5, w - 3, size - 3, 9); ctx.stroke(); ctx.setLineDash([]);
 
   ctx.textAlign = "right";
   ctx.font = "700 36px " + SERIF; ctx.fillStyle = C.accent; ctx.fillText(T.rsvpTitle, qx - 16, y + 40);
-  ctx.font = "400 17px " + SANS; ctx.fillStyle = C.body; ctx.fillText(T.rsvpSub, qx - 16, y + 72);
+  ctx.font = "400 17px " + SANS; ctx.fillStyle = C.body; ctx.fillText(phone ? T.rsvpPhoneSub : T.rsvpSub, qx - 16, y + 72);
   ctx.textAlign = "left"; ctx.textBaseline = "alphabetic";
 }
 

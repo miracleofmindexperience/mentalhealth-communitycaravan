@@ -1,5 +1,5 @@
 import { MESSAGE_TEXT as T } from "./config.js";
-import { activeLocs, allLoops, rsvpUrl, locWhen, hasMultipleWhens, routeInfoText, meetupWithMaterials } from "./state.js";
+import { activeLocs, allLoops, rsvpUrl, rsvpPhone, locWhen, hasMultipleWhens, routeInfoText, meetupWithMaterials } from "./state.js";
 
 const INDENT = "   ";
 
@@ -46,7 +46,10 @@ export function buildMessage(state) {
     if (materials) notes.push(T.materialsIcon + materials);
   }
 
-  const signOff = [T.closing, T.rsvpLabel + (rsvpUrl(state) || T.rsvpMissing)];
+  const rsvp = state.rsvpType === "phone"
+    ? T.rsvpPhoneLabel + (rsvpPhone(state) || T.rsvpPhoneMissing)
+    : T.rsvpLabel + (rsvpUrl(state) || T.rsvpMissing);
+  const signOff = [T.closing, rsvp];
   if (state.contact.trim()) signOff.push(T.contactLabel + state.contact.trim());
 
   return [intro, routes, notes, signOff].map(block => block.join("\n")).join("\n\n");

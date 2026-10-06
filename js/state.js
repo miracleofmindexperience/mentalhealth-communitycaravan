@@ -1,4 +1,4 @@
-import { STORAGE_KEY, PRESETS, DEFAULT_PRESET, ROUTE_INFO, DEFAULT_ROUTE_INFO, ROUTE_TYPES, FLYER_TEXT, DEFAULT_MATERIALS, OLD_DEFAULT_MATERIALS } from "./config.js";
+import { STORAGE_KEY, PRESETS, DEFAULT_PRESET, ROUTE_INFO, DEFAULT_ROUTE_INFO, ROUTE_TYPES, FLYER_TEXT, DEFAULT_MATERIALS, OLD_DEFAULT_MATERIALS, RSVP_TYPES, DEFAULT_RSVP_TYPE } from "./config.js";
 
 /* Which preset the page is using: ?preset=<key> if valid, else the default. */
 export function activePresetKey() {
@@ -19,6 +19,8 @@ function normalize(s) {
   s.routeInfoText = str(s.routeInfoText);
   s.note = str(s.note);
   s.contact = str(s.contact);
+  if (!RSVP_TYPES[s.rsvpType]) s.rsvpType = DEFAULT_RSVP_TYPE; // drafts from before phone RSVP used a form
+  s.rsvpPhone = str(s.rsvpPhone);
   if (typeof s.materials !== "string" || OLD_DEFAULT_MATERIALS.includes(s.materials.trim())) s.materials = DEFAULT_MATERIALS;
   if (typeof s.strip !== "string") s.strip = null;     // null = automatic text
   if (typeof s.message !== "string") s.message = null; // null = built from the form
@@ -136,4 +138,15 @@ export function rsvpUrl(state) {
 
 export function rsvpValid(state) {
   return rsvpUrl(state) !== "";
+}
+
+/* The RSVP phone number as typed ("" if blank). */
+export function rsvpPhone(state) {
+  return (state.rsvpPhone || "").trim();
+}
+
+/* A phone number has 10 to 15 digits, whatever the separators. */
+export function rsvpPhoneValid(state) {
+  const digits = rsvpPhone(state).replace(/\D/g, "").length;
+  return digits >= 10 && digits <= 15;
 }

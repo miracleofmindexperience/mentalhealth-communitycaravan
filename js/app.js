@@ -1,7 +1,7 @@
 /* Wires the two sections together: the flyer form and preview, then the
    WhatsApp message (built from the flyer inputs plus message-only fields). */
-import { MAX_LOCATIONS, PRESETS, FONTS, DOWNLOAD_PREFIX, ROUTE_INFO, ROUTE_TYPES, NEW_LOCATION_TYPE } from "./config.js";
-import { loadState, saveState, presetData, activePresetKey, activeLocs, rsvpValid, autoStripText, newLoc } from "./state.js";
+import { MAX_LOCATIONS, PRESETS, FONTS, DOWNLOAD_PREFIX, ROUTE_INFO, ROUTE_TYPES, NEW_LOCATION_TYPE, RSVP_TYPES } from "./config.js";
+import { loadState, saveState, presetData, activePresetKey, activeLocs, rsvpValid, rsvpPhone, rsvpPhoneValid, autoStripText, newLoc } from "./state.js";
 import { buildMessage } from "./message.js";
 import { drawFlyer, drawBanner } from "./flyer.js";
 
@@ -12,7 +12,8 @@ let state = loadState();
 /* Simple fields: input id -> state key. */
 const FIELDS = {
   // flyer
-  "f-date": "date", "f-time": "time", "f-area": "area", "f-rsvp": "rsvp",
+  "f-date": "date", "f-time": "time", "f-area": "area",
+  "f-rsvp-type": "rsvpType", "f-rsvp": "rsvp", "f-rsvp-phone": "rsvpPhone",
   "f-route-info": "routeInfo", "f-route-info-text": "routeInfoText",
   // message only
   "f-note": "note", "f-materials": "materials", "f-contact": "contact"
@@ -29,6 +30,15 @@ function fillForm() {
   renderLocs();
   updateStrip();
   updateRouteInfo();
+  updateRsvpType();
+}
+
+/* Shows the form-link or phone field, and the form header only for a form. */
+function updateRsvpType() {
+  const phone = state.rsvpType === "phone";
+  $("rsvp-form-wrap").hidden = phone;
+  $("rsvp-phone-wrap").hidden = !phone;
+  $("banner-frame").hidden = phone;
 }
 
 function updateRouteInfo() {
@@ -122,6 +132,7 @@ function changed() {
   saveState(state);
   updateStrip();
   updateRouteInfo();
+  updateRsvpType();
   updateMessage();
   updateWarn();
   clearTimeout(drawTimer);
@@ -145,6 +156,12 @@ $("msg-rebuild").addEventListener("click", () => { state.message = null; changed
 
 function updateWarn() {
   const w = $("rsvp-warn"), v = (state.rsvp || "").trim();
+  if (state.rsvpType === "phone") {
+    if (!rsvpPhone(state)) { w.textContent = "No phone number yet. The flyer shows an empty RSVP box until you add one."; w.hidden = false; }
+    else if (!rsvpPhoneValid(state)) { w.textContent = "This doesn't look like a phone number. Include the area code, e.g. 404-555-0123"; w.hidden = false; }
+    else w.hidden = true;
+    return;
+  }
   if (!v) { w.textContent = "No form link yet. The flyer shows an empty RSVP box until you add one."; w.hidden = false; }
   else if (!rsvpValid(state)) { w.textContent = "This doesn't look like a link. Paste the form link, e.g. forms.gle/abc123"; w.hidden = false; }
   else w.hidden = true;
@@ -191,6 +208,7 @@ $("dl-banner").addEventListener("click", async () => {
 /* ---------- start ---------- */
 $("reset").textContent = "Reset to the " + PRESETS[activePresetKey()].label + " example";
 $("max-locs").textContent = MAX_LOCATIONS;
+fillOptions($("f-rsvp-type"), RSVP_TYPES);
 fillOptions($("f-route-info"), Object.fromEntries(Object.entries(ROUTE_INFO).map(([k, v]) => [k, v.label])));
 fillForm(); updateMessage(); updateWarn();
 render();

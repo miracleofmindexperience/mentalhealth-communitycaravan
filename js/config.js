@@ -66,6 +66,8 @@ export const FLYER_TEXT = {
   rsvpTitle: "RSVP",
   rsvpSub: "Scan to sign up",
   rsvpEmpty: ["Add form", "link"],
+  rsvpPhoneSub: "Call or text",
+  rsvpPhoneEmpty: "Add phone number",
   /* Subtitle in the date strip. n = number of locations, area = area name,
      allLoops = every route ends where it starts. */
   routesSummary: (n, area, allLoops) => {
@@ -98,6 +100,8 @@ export const MESSAGE_TEXT = {
   closing: "🙏 *Open to all. Bring family & friends!*",
   rsvpLabel: "✅ RSVP: ",
   rsvpMissing: "[GOOGLE FORM LINK]",
+  rsvpPhoneLabel: "✅ RSVP: call or text ",
+  rsvpPhoneMissing: "[PHONE NUMBER]",
   contactLabel: "📩 Questions? Contact "
 };
 
@@ -115,6 +119,11 @@ export const ROUTE_INFO = {
   custom: { label: "Other (type your own)", text: null } // uses the coordinator's wording
 };
 export const DEFAULT_ROUTE_INFO = "meetup";
+
+/* How people RSVP: a Google Form (QR code on the flyer) or a phone number
+   to call or text, for cities without a form. */
+export const RSVP_TYPES = { form: "Google Form link (QR code)", phone: "Phone number (call or text)" };
+export const DEFAULT_RSVP_TYPE = "form";
 
 /* Route types for each location. */
 export const ROUTE_TYPES = { oneway: "Start → finish", loop: "Loop (back to start)" };
