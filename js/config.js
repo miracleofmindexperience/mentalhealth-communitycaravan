@@ -154,8 +154,7 @@ export const PRESETS = {
       locs: [
         { city: "Cumming", spot: "Midway Park Community Building", type: "loop" },
         { city: "Atlanta", spot: "Sheraton Atlanta Perimeter North", type: "loop" },
-        { city: "Duluth", spot: "W.P. Jones Memorial Park", type: "loop" },
-        { city: "Marietta", spot: "Jim R. Miller Park & Event Center", type: "loop" }
+        { city: "Duluth", spot: "W.P. Jones Memorial Park", type: "loop" }
       ]
     }
   }
