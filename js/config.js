@@ -144,16 +144,16 @@ export const PRESETS = {
   atlanta: {
     label: "Atlanta",
     data: {
-      date: "Sat, Oct 10",
-      time: "12 to 1 PM",
-      note: "right after Satsang",
+      date: "Sat, Oct 17",
+      time: "11 AM to 12 PM",
+      note: "meet at 10:30 AM",
       area: "metro Atlanta",
+      strip: "Meet 10:30 AM · 2 loop routes",
       rsvp: "https://forms.gle/MaXY43U9rMwD1NfK7",
       routeInfo: "meetup",
       contact: "",
       locs: [
         { city: "Cumming", spot: "Midway Park Community Building", type: "loop" },
-        { city: "Atlanta", spot: "Sheraton Atlanta Perimeter North", type: "loop" },
         { city: "Duluth", spot: "W.P. Jones Memorial Park", type: "loop" }
       ]
     }
